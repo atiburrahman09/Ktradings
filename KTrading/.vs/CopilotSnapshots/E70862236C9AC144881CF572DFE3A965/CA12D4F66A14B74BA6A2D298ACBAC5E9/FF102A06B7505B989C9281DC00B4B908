@@ -1,0 +1,32 @@
+﻿using KTrading.Models;
+using KTrading.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
+namespace KTrading.Pages.Products
+{
+    public class CreateModel : PageModel
+    {
+        private readonly IProductService _service;
+
+        public CreateModel(IProductService service)
+        {
+            _service = service;
+        }
+
+        [BindProperty]
+        public Product Product { get; set; } = new();
+
+        public void OnGet()
+        {
+        }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid) return Page();
+
+            await _service.AddAsync(Product);
+            return RedirectToPage("Index");
+        }
+    }
+}

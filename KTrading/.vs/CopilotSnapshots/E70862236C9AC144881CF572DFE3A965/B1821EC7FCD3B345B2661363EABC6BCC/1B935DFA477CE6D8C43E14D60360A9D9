@@ -1,0 +1,19 @@
+﻿@page "{id:guid}"
+@model KTrading.Pages.Products.DeleteModel
+@{
+    ViewData["Title"] = "Delete Product";
+}
+
+<h2>Delete Product</h2>
+
+<div>
+    <h5>@Model.Product?.Name</h5>
+    <p>SKU: @Model.Product?.SKU</p>
+    <p>Unit: @Model.Product?.Unit</p>
+    <p>Price: @Model.Product?.Price.ToString("N2")</p>
+
+    <form method="post">
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

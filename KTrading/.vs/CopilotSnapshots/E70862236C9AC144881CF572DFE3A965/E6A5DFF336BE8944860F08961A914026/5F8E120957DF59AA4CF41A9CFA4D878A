@@ -1,0 +1,39 @@
+﻿@page "{id:guid}"
+@model KTrading.Pages.Products.EditModel
+@{
+    ViewData["Title"] = "Edit Product";
+}
+
+<h2>Edit Product</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="Product.Id" />
+    <div class="mb-3">
+        <label asp-for="Product.SKU" class="form-label"></label>
+        <input asp-for="Product.SKU" class="form-control" />
+        <span asp-validation-for="Product.SKU" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Product.Name" class="form-label"></label>
+        <input asp-for="Product.Name" class="form-control" />
+        <span asp-validation-for="Product.Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Product.Unit" class="form-label"></label>
+        <input asp-for="Product.Unit" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Product.Price" class="form-label"></label>
+        <input asp-for="Product.Price" class="form-control" />
+    </div>
+    <div class="form-check mb-3">
+        <input asp-for="Product.IsActive" class="form-check-input" />
+        <label asp-for="Product.IsActive" class="form-check-label"></label>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,33 @@
+﻿@page
+@model KTrading.Pages.Customers.CreateModel
+@{
+    ViewData["Title"] = "Create Customer";
+}
+
+<h2>Create Customer</h2>
+
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Customer.Code" class="form-label"></label>
+        <input asp-for="Customer.Code" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Customer.Name" class="form-label"></label>
+        <input asp-for="Customer.Name" class="form-control" />
+        <span asp-validation-for="Customer.Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Customer.ContactName" class="form-label"></label>
+        <input asp-for="Customer.ContactName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Customer.Phone" class="form-label"></label>
+        <input asp-for="Customer.Phone" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

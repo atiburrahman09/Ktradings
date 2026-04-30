@@ -1,0 +1,38 @@
+﻿@page "{id:guid}"
+@model KTrading.Pages.ProductReturns.DetailsModel
+@{
+    ViewData["Title"] = "Return Details";
+}
+
+<h2>Return Details</h2>
+
+<div>
+    <h4>Return #: @Model.Return?.ReturnNumber</h4>
+    <p>Customer: @(Model.CustomerName ?? "-")</p>
+    <p>Date: @Model.Return?.CreatedAt.ToString("yyyy-MM-dd")</p>
+    <p>Status: @Model.Return?.Status</p>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Damaged</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach(var it in Model.Items ?? Enumerable.Empty<KTrading.Models.ProductReturnItem>())
+    {
+        <tr>
+            <td>@(Model.ProductMap.ContainsKey(it.ProductId) ? Model.ProductMap[it.ProductId] : it.ProductId.ToString())</td>
+            <td>@it.Quantity</td>
+            <td>@(it.IsDamaged ? "Yes" : "No")</td>
+            <td>@it.Notes</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-page="Index" class="btn btn-secondary">Back</a>

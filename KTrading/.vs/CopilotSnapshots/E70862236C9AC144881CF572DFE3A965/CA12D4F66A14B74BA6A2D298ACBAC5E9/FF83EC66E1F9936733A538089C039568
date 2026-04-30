@@ -1,0 +1,39 @@
+﻿using KTrading.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using KTrading.Data;
+using Microsoft.AspNetCore.Authorization;
+
+namespace KTrading.Pages.Customers
+{
+    [Authorize(Policy = "RequireAdminOrSales")]
+    public class CreateModel : PageModel
+    {
+        private readonly ApplicationDbContext _db;
+
+        public CreateModel(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        [BindProperty]
+        public Customer Customer { get; set; } = new();
+
+        public void OnGet()
+        {
+        }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid) return Page();
+
+            if (Customer.Id == Guid.Empty) Customer.Id = Guid.NewGuid();
+            Customer.CreatedAt = DateTimeOffset.UtcNow;
+
+            _db.Customers.Add(Customer);
+            await _db.SaveChangesAsync();
+
+            return RedirectToPage("Index");
+        }
+    }
+}

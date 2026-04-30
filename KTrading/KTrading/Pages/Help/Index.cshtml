@@ -1,0 +1,12 @@
+@page
+@model KTrading.Pages.Help.IndexModel
+@{
+    ViewData["Title"] = "Help";
+}
+
+<div class="card">
+    <div class="card-body">
+        <h2>User Guide</h2>
+        <div>@Html.Raw(Model.HtmlContent)</div>
+    </div>
+</div>

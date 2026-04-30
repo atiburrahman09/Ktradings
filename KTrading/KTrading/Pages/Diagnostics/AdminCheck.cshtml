@@ -1,0 +1,37 @@
+@page
+@model KTrading.Pages.Diagnostics.AdminCheckModel
+@{
+    ViewData["Title"] = "Admin Account Check";
+}
+
+<h2>Admin Account Diagnostics (Development only)</h2>
+
+@if (!Model.IsDevelopment)
+{
+    <div class="alert alert-danger">This page is only available in Development environment.</div>
+}
+else
+{
+    <table class="table table-sm">
+        <tr><th>Admin Email</th><td>@Model.AdminEmail</td></tr>
+        <tr><th>User Exists</th><td>@Model.UserExists</td></tr>
+        <tr><th>Username</th><td>@Model.UserName</td></tr>
+        <tr><th>Email Confirmed</th><td>@Model.EmailConfirmed</td></tr>
+        <tr><th>Has Password</th><td>@Model.HasPassword</td></tr>
+        <tr><th>Password Valid (check)</th><td>@Model.PasswordValid</td></tr>
+        <tr><th>Can Sign In</th><td>@Model.CanSignIn</td></tr>
+    </table>
+
+    @if (!Model.UserExists)
+    {
+        <div class="alert alert-warning">Admin user not found. Seed should create it on startup.</div>
+    }
+    else if (!Model.CanSignIn)
+    {
+        <div class="alert alert-warning">Sign-in test failed. Check logs for details.</div>
+    }
+    else
+    {
+        <div class="alert alert-success">Admin sign-in appears to work.</div>
+    }
+}

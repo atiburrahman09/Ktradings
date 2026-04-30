@@ -1,0 +1,65 @@
+﻿@page
+@model KTrading.Pages.ProductReturns.CreateModel
+@{
+    ViewData["Title"] = "Create Product Return";
+}
+
+<h2>Create Product Return</h2>
+
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Return.ReturnNumber" class="form-label"></label>
+        <input asp-for="Return.ReturnNumber" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Return.CustomerId" class="form-label">Customer</label>
+        <select asp-for="Return.CustomerId" asp-items="Model.Customers" class="form-select"></select>
+    </div>
+
+    <h5>Items</h5>
+    <table class="table table-sm" id="returnItemsTable">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Damaged</th>
+                <th>Notes</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="template d-none">
+                <td>
+                    <select name="Items[0].ProductId" class="form-select">
+                        <option value="">-- select --</option>
+                        @foreach(var p in Model.ProductList)
+                        {
+                            <option value="@p.Value">@p.Text</option>
+                        }
+                    </select>
+                </td>
+                <td><input name="Items[0].Quantity" class="form-control" value="1" /></td>
+                <td><input type="checkbox" name="Items[0].IsDamaged" class="form-check-input" /></td>
+                <td><input name="Items[0].Notes" class="form-control" /></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="mb-3">
+        <button id="addReturnItem" type="button" class="btn btn-secondary">Add Item</button>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Return.Reason" class="form-label"></label>
+        <textarea asp-for="Return.Reason" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Return</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/form-rows.js"></script>
+}

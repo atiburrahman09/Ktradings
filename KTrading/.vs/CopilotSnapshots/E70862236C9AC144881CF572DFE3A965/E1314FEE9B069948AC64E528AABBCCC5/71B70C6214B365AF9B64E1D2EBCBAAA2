@@ -1,0 +1,60 @@
+﻿using KTrading.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using KTrading.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+
+namespace KTrading.Pages.SalesOrders
+{
+    public class CreateModel : PageModel
+    {
+        private readonly ApplicationDbContext _db;
+
+        public CreateModel(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        [BindProperty]
+        public SalesOrder SalesOrder { get; set; } = new();
+
+        [BindProperty]
+        public List<SalesOrderItem> Items { get; set; } = new();
+
+        public IEnumerable<SelectListItem> CustomerList { get; set; } = Array.Empty<SelectListItem>();
+        public List<KTrading.Models.Product> ProductsFull { get; set; } = new();
+
+        public async Task OnGetAsync()
+        {
+            CustomerList = await _db.Customers.Select(c => new SelectListItem(c.Name, c.Id.ToString())).ToListAsync();
+            ProductsFull = await _db.Products.ToListAsync();
+        }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid) return Page();
+
+            if (SalesOrder.Id == Guid.Empty) SalesOrder.Id = Guid.NewGuid();
+            SalesOrder.CreatedAt = DateTimeOffset.UtcNow;
+
+            // compute totals
+            decimal subtotal = 0;
+            foreach(var it in Items)
+            {
+                it.Id = Guid.NewGuid();
+                it.SalesOrderId = SalesOrder.Id;
+                it.LineTotal = it.Quantity * it.UnitPrice;
+                subtotal += it.LineTotal;
+            }
+            SalesOrder.Subtotal = subtotal;
+            SalesOrder.Total = subtotal; // no tax/discount logic yet
+
+            _db.SalesOrders.Add(SalesOrder);
+            if(Items.Any()) _db.SalesOrderItems.AddRange(Items);
+            await _db.SaveChangesAsync();
+
+            return RedirectToPage("Index");
+        }
+    }
+}

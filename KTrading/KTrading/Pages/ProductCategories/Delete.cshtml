@@ -1,0 +1,29 @@
+@page "{id:guid}"
+@model KTrading.Pages.ProductCategories.DeleteModel
+@{
+    ViewData["Title"] = "Delete Product Category";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-trash"></i> Delete Product Category</h3>
+    </div>
+    <div class="card-body">
+        <h5>@Model.ProductCategory?.Name</h5>
+        <p>Linked Products: @Model.LinkedProductCount</p>
+
+        @if (Model.LinkedProductCount > 0)
+        {
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                Deleting this category will remove the category assignment from @Model.LinkedProductCount product(s). They will become uncategorized.
+            </div>
+        }
+
+        <form method="post">
+            <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+            <a asp-page="Index" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </form>
+    </div>
+</div>
+

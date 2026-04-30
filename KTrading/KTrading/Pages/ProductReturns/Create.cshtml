@@ -1,0 +1,74 @@
+@page
+@model KTrading.Pages.ProductReturns.CreateModel
+@{
+    ViewData["Title"] = "Create Product Return";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-undo-alt"></i> Create Product Return</h3>
+    </div>
+    <form method="post" class="card-body">
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Return.ReturnNumber" class="form-label"></label>
+            <input asp-for="Return.ReturnNumber" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="Return.CustomerId" class="form-label">Customer</label>
+            <select asp-for="Return.CustomerId" asp-items="Model.Customers" class="form-select"></select>
+        </div>
+
+        <h5>Items</h5>
+        <div class="table-responsive">
+            <table class="table table-sm" id="returnItemsTable">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Damaged</th>
+                        <th>Notes</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="template d-none">
+                        <td>
+                            <select name="Items[0].ProductId" class="form-select">
+                                <option value="">-- select --</option>
+                                @foreach(var p in Model.ProductsFull)
+                                {
+                                    <option value="@p.Id">@p.Name</option>
+                                }
+                            </select>
+                        </td>
+                        <td><input name="Items[0].Quantity" class="form-control" value="1" /></td>
+                        <td><input type="checkbox" name="Items[0].IsDamaged" class="form-check-input" /></td>
+                        <td><input name="Items[0].Notes" class="form-control" /></td>
+                        <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mb-3">
+            <button id="addReturnItem" type="button" class="btn btn-secondary">Add Item</button>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Return.Reason" class="form-label"></label>
+            <textarea asp-for="Return.Reason" class="form-control"></textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Create Return</button>
+            <a asp-page="Index" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/form-rows.js"></script>
+}

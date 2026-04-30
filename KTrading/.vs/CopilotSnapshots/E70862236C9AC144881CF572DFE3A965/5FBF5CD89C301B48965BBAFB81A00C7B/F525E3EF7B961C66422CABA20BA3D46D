@@ -1,0 +1,97 @@
+﻿@page
+@model KTrading.Pages.SalesOrders.CreateModel
+@{
+    ViewData["Title"] = "Create Sales Order";
+}
+
+<h2>Create Sales Order</h2>
+
+<form method="post">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label asp-for="SalesOrder.OrderNumber" class="form-label"></label>
+            <input asp-for="SalesOrder.OrderNumber" class="form-control" />
+            <span asp-validation-for="SalesOrder.OrderNumber" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="SalesOrder.CustomerId" class="form-label">Customer</label>
+            <select asp-for="SalesOrder.CustomerId" asp-items="Model.CustomerList" class="form-select"></select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="SalesOrder.OrderDate" class="form-label"></label>
+            <input asp-for="SalesOrder.OrderDate" class="form-control" />
+        </div>
+    </div>
+
+    <h5>Items</h5>
+    <table class="table table-sm" id="itemsTable">
+        <thead>
+            <tr>
+                <th style="width:40%">Product</th>
+                <th style="width:15%">Quantity</th>
+                <th style="width:15%">Unit Price</th>
+                <th style="width:15%">Line Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="item-row template d-none">
+                <td>
+                    <select name="Items[0].ProductId" class="form-select product-select">
+                        <option value="">-- select --</option>
+                        @foreach (var p in Model.ProductsFull)
+                        {
+                            <option value="@p.Id" data-price="@p.Price">@p.Name</option>
+                        }
+                    </select>
+                </td>
+                <td><input name="Items[0].Quantity" class="form-control qty" value="1" /></td>
+                <td><input name="Items[0].UnitPrice" class="form-control unitprice" /></td>
+                <td><input name="Items[0].LineTotal" class="form-control linetotal" readonly /></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
+            </tr>
+
+            @for (int i = 0; i < Model.Items?.Count; i++)
+            {
+                <tr class="item-row">
+                    <td>
+                        <select name="Items[@i].ProductId" class="form-select product-select">
+                            <option value="">-- select --</option>
+                            @foreach (var p in Model.ProductsFull)
+                            {
+                                var selected = p.Id.ToString() == Model.Items[i].ProductId.ToString() ? "selected" : "";
+                                <option value="@p.Id" data-price="@p.Price" selected="@selected">@p.Name</option>
+                            }
+                        </select>
+                    </td>
+                    <td><input name="Items[@i].Quantity" class="form-control qty" value="@Model.Items[i].Quantity" /></td>
+                    <td><input name="Items[@i].UnitPrice" class="form-control unitprice" value="@Model.Items[i].UnitPrice" /></td>
+                    <td><input name="Items[@i].LineTotal" class="form-control linetotal" readonly value="@Model.Items[i].LineTotal" /></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mb-3">
+        <button id="addItem" type="button" class="btn btn-secondary">Add Item</button>
+    </div>
+
+    <div class="mb-3 text-end">
+        <label class="me-3">Subtotal: </label><span id="subtotal">0.00</span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/form-rows.js"></script>
+    <script>
+        (function(){
+            // initialize totals on page load
+            window.computeAll && window.computeAll();
+        })();
+    </script>
+}

@@ -1,0 +1,29 @@
+﻿@page
+@model KTrading.Pages.ProductReturns.CreateModel
+@{
+    ViewData["Title"] = "Create Product Return";
+}
+
+<h2>Create Product Return</h2>
+
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Return.ReturnNumber" class="form-label"></label>
+        <input asp-for="Return.ReturnNumber" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Return.CustomerId" class="form-label">Customer</label>
+        <select asp-for="Return.CustomerId" asp-items="Model.Customers" class="form-select"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Return.Reason" class="form-label"></label>
+        <textarea asp-for="Return.Reason" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

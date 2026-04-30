@@ -1,0 +1,34 @@
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using KTrading.Data;
+using KTrading.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace KTrading.Pages.Reports
+{
+    public class InventoryValueModel : PageModel
+    {
+        private readonly ApplicationDbContext _db;
+        public InventoryValueModel(ApplicationDbContext db) { _db = db; }
+
+        public class Row { public string ProductName { get; set; } = ""; public string Category { get; set; } = ""; public decimal Quantity { get; set; } public decimal UnitCost { get; set; } public decimal Value { get; set; } }
+
+        public List<Row> Rows { get; set; } = new();
+        public decimal TotalValue { get; set; }
+
+        public async Task OnGetAsync()
+        {
+            var stocks = await _db.Stocks.ToListAsync();
+            var products = await _db.Products.Include(p => p.ProductCategory).ToListAsync();
+            var prodMap = products.ToDictionary(p => p.Id, p => p);
+            foreach(var s in stocks)
+            {
+                prodMap.TryGetValue(s.ProductId, out var p);
+                var qty = s.Quantity;
+                var cost = p?.Cost ?? 0m;
+                var val = qty * cost;
+                Rows.Add(new Row { ProductName = p?.Name ?? s.ProductId.ToString(), Category = p?.ProductCategory?.Name ?? "Uncategorized", Quantity = qty, UnitCost = cost, Value = val });
+                TotalValue += val;
+            }
+        }
+    }
+}

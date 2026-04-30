@@ -1,0 +1,866 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Development\\KTrading\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\models\\productcategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\models\\productcategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\todo.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\todo.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\customers\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\customers\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\customers\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\customers\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\customers\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\customers\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\productreturns\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\productreturns\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\stocks\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\stocks\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\stocks\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\stocks\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\stocks\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\stocks\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\stocks\\details.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\stocks\\details.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\reports\\inventoryvalue.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\reports\\inventoryvalue.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\reports\\inventoryvalue.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\reports\\inventoryvalue.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\productreturns\\details.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\productreturns\\details.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\products\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\products\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\salesorders\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\salesorders\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\account\\login.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\account\\login.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\reports\\exportinventoryexcel.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\reports\\exportinventoryexcel.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Development\\KTrading\\KTrading.Tests\\KTrading.Tests.csproj||{8B382828-6202-11D1-8870-0000F87579D2}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:KTrading.Tests\\KTrading.Tests.csproj||{8B382828-6202-11D1-8870-0000F87579D2}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Development\\KTrading\\KTrading.Tests\\InventoryReportTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:KTrading.Tests\\InventoryReportTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\docs\\user_guide.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\docs\\user_guide.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\help\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\help\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\help\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\help\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Development\\KTrading\\KTrading.Tests\\ReturnProcessingTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:KTrading.Tests\\ReturnProcessingTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Development\\KTrading\\KTrading.Tests\\ExportExcelTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:KTrading.Tests\\ExportExcelTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\wwwroot\\lib\\adminlte\\adminlte.min.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\wwwroot\\lib\\adminlte\\adminlte.min.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\wwwroot\\lib\\adminlte\\adminlte.min.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\wwwroot\\lib\\adminlte\\adminlte.min.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\products\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\products\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\salesorders\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\salesorders\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\productreturns\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\productreturns\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\wwwroot\\lib\\fontawesome\\readme.txt||{8B382828-6202-11D1-8870-0000F87579D2}|",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\wwwroot\\lib\\fontawesome\\readme.txt||{8B382828-6202-11D1-8870-0000F87579D2}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\products\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\products\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\products\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\products\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\customers\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\customers\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\customers\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\customers\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\salesorders\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\salesorders\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\productreturns\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\productreturns\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\wwwroot\\lib\\fontawesome\\css\\all.min.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\wwwroot\\lib\\fontawesome\\css\\all.min.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\wwwroot\\lib\\fontawesome\\webfonts\\readme.txt||{8B382828-6202-11D1-8870-0000F87579D2}|",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\wwwroot\\lib\\fontawesome\\webfonts\\readme.txt||{8B382828-6202-11D1-8870-0000F87579D2}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\products\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\products\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\customers\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\customers\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\salesorders\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\salesorders\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\models\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\models\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|d:\\development\\ktrading\\ktrading\\pages\\products\\edit.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2421EC40-5719-4CBD-B649-022D4B4170A9}|KTrading\\KTrading.csproj|solutionrelative:ktrading\\pages\\products\\edit.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 19,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TODO.md",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\TODO.md",
+              "RelativeDocumentMoniker": "KTrading\\TODO.md",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\TODO.md",
+              "RelativeToolTip": "KTrading\\TODO.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-04-28T09:28:37.074Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 48,
+              "Title": "Edit.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Edit.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Products\\Edit.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Edit.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Products\\Edit.cshtml.cs",
+              "ViewState": "AgIAAC4AAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T09:04:10.612Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 47,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "KTrading\\Data\\ApplicationDbContext.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "KTrading\\Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAFUAAAAAAAAAAEBVwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T08:59:16.591Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 46,
+              "Title": "Product.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Models\\Product.cs",
+              "RelativeDocumentMoniker": "KTrading\\Models\\Product.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Models\\Product.cs",
+              "RelativeToolTip": "KTrading\\Models\\Product.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAEBUwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T08:58:50.792Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ProductCategory.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Models\\ProductCategory.cs",
+              "RelativeDocumentMoniker": "KTrading\\Models\\ProductCategory.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Models\\ProductCategory.cs",
+              "RelativeToolTip": "KTrading\\Models\\ProductCategory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T08:58:38.901Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 41,
+              "Title": "all.min.css",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\fontawesome\\css\\all.min.css",
+              "RelativeDocumentMoniker": "KTrading\\wwwroot\\lib\\fontawesome\\css\\all.min.css",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\fontawesome\\css\\all.min.css",
+              "RelativeToolTip": "KTrading\\wwwroot\\lib\\fontawesome\\css\\all.min.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-04-27T06:58:35.064Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Create.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Products\\Create.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Create.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Products\\Create.cshtml",
+              "ViewState": "AgIAAEIAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:52:22.77Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "README.txt",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\fontawesome\\README.txt",
+              "RelativeDocumentMoniker": "KTrading\\wwwroot\\lib\\fontawesome\\README.txt",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\fontawesome\\README.txt",
+              "RelativeToolTip": "KTrading\\wwwroot\\lib\\fontawesome\\README.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-04-27T06:50:00.074Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Index.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\ProductReturns\\Index.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Index.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\ProductReturns\\Index.cshtml",
+              "ViewState": "AgIAACQAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:49:21.796Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Index.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\SalesOrders\\Index.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Index.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\SalesOrders\\Index.cshtml",
+              "ViewState": "AgIAACQAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:49:01.106Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Customers\\Index.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Index.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Customers\\Index.cshtml.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAqwBYAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-26T09:27:19.502Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 42,
+              "Title": "README.txt",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\fontawesome\\webfonts\\README.txt",
+              "RelativeDocumentMoniker": "KTrading\\wwwroot\\lib\\fontawesome\\webfonts\\README.txt",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\fontawesome\\webfonts\\README.txt",
+              "RelativeToolTip": "KTrading\\wwwroot\\lib\\fontawesome\\webfonts\\README.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-04-27T06:58:42.463Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 43,
+              "Title": "Delete.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Delete.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Products\\Delete.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Delete.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Products\\Delete.cshtml",
+              "ViewState": "AgIAABIAAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:58:52.565Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Index.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Products\\Index.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Index.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Products\\Index.cshtml",
+              "ViewState": "AgIAACcAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:48:40.253Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 44,
+              "Title": "Delete.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Delete.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Customers\\Delete.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Delete.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Customers\\Delete.cshtml",
+              "ViewState": "AgIAABIAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:59:10.038Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 45,
+              "Title": "Details.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Details.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\SalesOrders\\Details.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Details.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\SalesOrders\\Details.cshtml",
+              "ViewState": "AgIAABAAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:59:22.895Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "Edit.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Edit.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Products\\Edit.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Edit.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Products\\Edit.cshtml",
+              "ViewState": "AgIAAEMAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:52:51.302Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Create.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Customers\\Create.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Create.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Customers\\Create.cshtml",
+              "ViewState": "AgIAACsAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:53:13.049Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 38,
+              "Title": "Edit.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Edit.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Customers\\Edit.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Edit.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Customers\\Edit.cshtml",
+              "ViewState": "AgIAACwAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:53:37.245Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 39,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Create.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\SalesOrders\\Create.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Create.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\SalesOrders\\Create.cshtml",
+              "ViewState": "AgIAAGYAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:54:12.1Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 40,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Create.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\ProductReturns\\Create.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Create.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\ProductReturns\\Create.cshtml",
+              "ViewState": "AgIAAEcAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:54:43.196Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Details.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Details.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\ProductReturns\\Details.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Details.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\ProductReturns\\Details.cshtml",
+              "ViewState": "AgIAADAAAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:07:36.587Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Index.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Stocks\\Index.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Index.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Stocks\\Index.cshtml",
+              "ViewState": "AgIAACMAAAAAAAAAAIBJwCUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:07:53.226Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "SeedData.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Data\\SeedData.cs",
+              "RelativeDocumentMoniker": "KTrading\\Data\\SeedData.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Data\\SeedData.cs",
+              "RelativeToolTip": "KTrading\\Data\\SeedData.cs",
+              "ViewState": "AgIAAOwAAAAAAAAAAEBVwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:27:10.03Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "KTrading.Tests.csproj",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading.Tests\\KTrading.Tests.csproj",
+              "RelativeDocumentMoniker": "KTrading.Tests\\KTrading.Tests.csproj",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading.Tests\\KTrading.Tests.csproj",
+              "RelativeToolTip": "KTrading.Tests\\KTrading.Tests.csproj",
+              "ViewState": "AgIAABIAAAAAAAAAAABBwBMAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-04-27T06:27:50.158Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "InventoryReportTests.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading.Tests\\InventoryReportTests.cs",
+              "RelativeDocumentMoniker": "KTrading.Tests\\InventoryReportTests.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading.Tests\\InventoryReportTests.cs",
+              "RelativeToolTip": "KTrading.Tests\\InventoryReportTests.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:28:09.441Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "USER_GUIDE.md",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Docs\\USER_GUIDE.md",
+              "RelativeDocumentMoniker": "KTrading\\Docs\\USER_GUIDE.md",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Docs\\USER_GUIDE.md",
+              "RelativeToolTip": "KTrading\\Docs\\USER_GUIDE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-04-27T06:31:56.363Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "adminlte.min.css",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.css",
+              "RelativeDocumentMoniker": "KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.css",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.css",
+              "RelativeToolTip": "KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-04-27T06:44:59.56Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "adminlte.min.js",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.js",
+              "RelativeDocumentMoniker": "KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.js",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.js",
+              "RelativeToolTip": "KTrading\\wwwroot\\lib\\adminlte\\adminlte.min.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-04-27T06:45:11.332Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "ReturnProcessingTests.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading.Tests\\ReturnProcessingTests.cs",
+              "RelativeDocumentMoniker": "KTrading.Tests\\ReturnProcessingTests.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading.Tests\\ReturnProcessingTests.cs",
+              "RelativeToolTip": "KTrading.Tests\\ReturnProcessingTests.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:37:12.88Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "ExportExcelTests.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading.Tests\\ExportExcelTests.cs",
+              "RelativeDocumentMoniker": "KTrading.Tests\\ExportExcelTests.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading.Tests\\ExportExcelTests.cs",
+              "RelativeToolTip": "KTrading.Tests\\ExportExcelTests.cs",
+              "ViewState": "AgIAADsAAAAAAAAAAEBVwD8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:38:46.471Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Help\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Help\\Index.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Help\\Index.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Help\\Index.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:35:18.641Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Help\\Index.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Help\\Index.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Help\\Index.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Help\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:35:28.403Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Stocks\\Index.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Index.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Stocks\\Index.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:08:10.165Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Details.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Details.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Stocks\\Details.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Details.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Stocks\\Details.cshtml",
+              "ViewState": "AgIAACsAAAAAAAAAAIBJwC0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:08:22.66Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Details.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Details.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Stocks\\Details.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Stocks\\Details.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Stocks\\Details.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:08:34.31Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "KTrading\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAHYAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:09:40.838Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Index.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Index.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Index.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Index.cshtml",
+              "ViewState": "AgIAACgAAAAAAAAAAABRwCsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:10:00.205Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Account\\Login.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Account\\Login.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Account\\Login.cshtml",
+              "ViewState": "AgIAACoAAAAAAAAAAIBJwCwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:10:25.677Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Program.cs",
+              "RelativeDocumentMoniker": "KTrading\\Program.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Program.cs",
+              "RelativeToolTip": "KTrading\\Program.cs",
+              "ViewState": "AgIAAG4AAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:19:09.329Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "ExportInventoryExcel.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Reports\\ExportInventoryExcel.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Reports\\ExportInventoryExcel.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Reports\\ExportInventoryExcel.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Reports\\ExportInventoryExcel.cshtml.cs",
+              "ViewState": "AgIAAFsAAAAAAAAAAABBwFwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:23:42.965Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "InventoryValue.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Reports\\InventoryValue.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Reports\\InventoryValue.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Reports\\InventoryValue.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Reports\\InventoryValue.cshtml",
+              "ViewState": "AgIAACcAAAAAAAAAAIBJwCkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-27T06:10:36.058Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "Login.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Account\\Login.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Account\\Login.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Account\\Login.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Account\\Login.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:15:14.281Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Create.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Create.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\SalesOrders\\Create.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\SalesOrders\\Create.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\SalesOrders\\Create.cshtml.cs",
+              "ViewState": "AgIAAEgAAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:12:25.008Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Create.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Create.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Products\\Create.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Products\\Create.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Products\\Create.cshtml.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:11:49.304Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Details.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Details.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\ProductReturns\\Details.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\ProductReturns\\Details.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\ProductReturns\\Details.cshtml.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:11:14.414Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "InventoryValue.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Reports\\InventoryValue.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Reports\\InventoryValue.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Reports\\InventoryValue.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Reports\\InventoryValue.cshtml.cs",
+              "ViewState": "AgIAACEAAAAAAAAAAABBwCIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T06:10:53.081Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Index.cshtml",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Customers\\Index.cshtml",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Index.cshtml",
+              "RelativeToolTip": "KTrading\\Pages\\Customers\\Index.cshtml",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-26T09:27:14.103Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Create.cshtml.cs",
+              "DocumentMoniker": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Create.cshtml.cs",
+              "RelativeDocumentMoniker": "KTrading\\Pages\\Customers\\Create.cshtml.cs",
+              "ToolTip": "D:\\Development\\KTrading\\KTrading\\Pages\\Customers\\Create.cshtml.cs",
+              "RelativeToolTip": "KTrading\\Pages\\Customers\\Create.cshtml.cs",
+              "ViewState": "AgIAACQAAAAAAAAAAABRwCcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-26T09:27:02.033Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

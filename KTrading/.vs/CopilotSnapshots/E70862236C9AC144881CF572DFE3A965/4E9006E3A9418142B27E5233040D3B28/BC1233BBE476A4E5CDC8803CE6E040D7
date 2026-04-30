@@ -1,0 +1,36 @@
+﻿@page
+@model KTrading.Pages.ProductReturns.IndexModel
+@{
+    ViewData["Title"] = "Product Returns";
+}
+
+<div class="d-flex justify-content-between mb-3">
+    <h2>Product Returns</h2>
+    <a class="btn btn-primary" asp-page="Create">Create Return</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Return#</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var r in Model.Returns)
+    {
+        <tr>
+            <td>@r.ReturnNumber</td>
+            <td>@(r.CustomerId == null ? "-" : (Model.CustomerMap.ContainsKey(r.CustomerId.Value) ? Model.CustomerMap[r.CustomerId.Value] : r.CustomerId.ToString()))</td>
+            <td>@r.CreatedAt.ToString("yyyy-MM-dd")</td>
+            <td>@r.Status</td>
+            <td>
+                <a class="btn btn-sm btn-outline-secondary" asp-page="Details" asp-route-id="@r.Id">View</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

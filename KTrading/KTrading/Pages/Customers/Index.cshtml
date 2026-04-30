@@ -1,0 +1,37 @@
+@page
+@model KTrading.Pages.Customers.IndexModel
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="d-flex justify-content-between mb-3">
+    <h2>Customers</h2>
+    <a class="btn btn-primary" asp-page="Create">Create New</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Phone</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Model.Customers)
+    {
+        <tr>
+            <td>@c.Code</td>
+            <td>@c.Name</td>
+            <td>@c.ContactName</td>
+            <td>@c.Phone</td>
+            <td>
+                <a class="btn btn-sm btn-outline-secondary" asp-page="Edit" asp-route-id="@c.Id">Edit</a>
+                <a class="btn btn-sm btn-outline-danger" asp-page="Delete" asp-route-id="@c.Id">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

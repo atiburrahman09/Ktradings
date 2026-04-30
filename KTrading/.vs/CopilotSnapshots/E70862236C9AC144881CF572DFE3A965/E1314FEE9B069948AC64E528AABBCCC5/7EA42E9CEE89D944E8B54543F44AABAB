@@ -1,0 +1,38 @@
+﻿using KTrading.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using KTrading.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace KTrading.Pages.ProductReturns
+{
+    public class DetailsModel : PageModel
+    {
+        private readonly ApplicationDbContext _db;
+
+        public DetailsModel(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        public ProductReturn? Return { get; set; }
+        public IEnumerable<ProductReturnItem>? Items { get; set; }
+        public Dictionary<Guid, string> ProductMap { get; set; } = new();
+        public string? CustomerName { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(Guid id)
+        {
+            Return = await _db.ProductReturns.FindAsync(id);
+            if (Return is null) return NotFound();
+            Items = await _db.ProductReturnItems.Where(i => i.ProductReturnId == id).ToListAsync();
+            var products = await _db.Products.ToListAsync();
+            ProductMap = products.ToDictionary(p => p.Id, p => p.Name);
+            if (Return.CustomerId != null)
+            {
+                var c = await _db.Customers.FindAsync(Return.CustomerId.Value);
+                CustomerName = c?.Name;
+            }
+            return Page();
+        }
+    }
+}

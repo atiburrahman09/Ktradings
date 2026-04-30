@@ -1,0 +1,38 @@
+﻿@page "{id:guid}"
+@model KTrading.Pages.Stocks.DetailsModel
+@{
+    ViewData["Title"] = "Stock Details";
+}
+
+<h2>Stock Details</h2>
+
+<div>
+    <h4>Product: @Model.ProductName</h4>
+    <p>Quantity: @Model.Stock.Quantity</p>
+    <p>Updated: @Model.Stock.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+</div>
+
+<h4 class="mt-4">Recent Movements</h4>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th class="text-end">Quantity</th>
+            <th>Note</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach(var m in Model.Movements)
+    {
+        <tr>
+            <td>@m.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+            <td>@m.MovementType</td>
+            <td class="text-end">@m.Quantity</td>
+            <td>@m.Note</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-page="Index" class="btn btn-secondary">Back</a>
