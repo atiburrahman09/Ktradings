@@ -42,7 +42,7 @@
                 <tbody>
                     <tr class="item-row template d-none">
                         <td>
-                            <select name="Items[0].ProductId" class="form-select product-select">
+                            <select name="Items[0].ProductId" class="form-select product-select" disabled>
                                 <option value="">-- select --</option>
                                 @foreach (var p in Model.ProductsFull)
                                 {
@@ -50,9 +50,9 @@
                                 }
                             </select>
                         </td>
-                        <td><input name="Items[0].Quantity" class="form-control qty" value="1" /></td>
-                        <td><input name="Items[0].UnitPrice" class="form-control unitprice" /></td>
-                        <td><input name="Items[0].LineTotal" class="form-control linetotal" readonly /></td>
+                        <td><input name="Items[0].Quantity" class="form-control qty" value="1" disabled /></td>
+                        <td><input name="Items[0].UnitPrice" class="form-control unitprice" disabled /></td>
+                        <td><input name="Items[0].LineTotal" class="form-control linetotal" readonly disabled /></td>
                         <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
                     </tr>
 
@@ -90,6 +90,27 @@
 
         <div class="mb-3 text-end">
             <label class="me-3">Subtotal: </label><span id="subtotal">0.00</span>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.Commission" class="form-label"></label>
+                <input asp-for="SalesOrder.Commission" class="form-control money-input" min="0" step="0.01" />
+                <span asp-validation-for="SalesOrder.Commission" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.PaidAmount" class="form-label">Paid Amount</label>
+                <input asp-for="SalesOrder.PaidAmount" class="form-control money-input" min="0" step="0.01" />
+                <span asp-validation-for="SalesOrder.PaidAmount" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Due Amount</label>
+                <input id="dueAmount" class="form-control" readonly value="0.00" />
+            </div>
+        </div>
+
+        <div class="mb-3 text-end">
+            <label class="me-3">Net After Commission: </label><span id="netAfterExpenses">0.00</span>
         </div>
 
         <div class="d-flex gap-2">

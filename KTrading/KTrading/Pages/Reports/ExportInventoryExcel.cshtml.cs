@@ -30,25 +30,42 @@ namespace KTrading.Pages.Reports
                 .ThenBy(p => p.Name)
                 .ToListAsync();
             var productIds = products.Select(p => p.Id).ToHashSet();
-            var stocks = await _db.Stocks.Where(s => productIds.Contains(s.ProductId)).ToListAsync();
-            var movements = await _db.StockMovements.Where(m => productIds.Contains(m.ProductId)).ToListAsync();
+            var stocks = (await _db.Stocks.ToListAsync())
+                .Where(s => productIds.Contains(s.ProductId))
+                .ToList();
+            var movements = (await _db.StockMovements.ToListAsync())
+                .Where(m => productIds.Contains(m.ProductId))
+                .ToList();
+            var salesItems = (await _db.SalesOrderItems.ToListAsync())
+                .Where(i => productIds.Contains(i.ProductId))
+                .ToList();
+            var matchingSalesOrderIds = salesItems.Select(i => i.SalesOrderId).ToHashSet();
+            var salesOrders = (await _db.SalesOrders.ToListAsync())
+                .Where(o => matchingSalesOrderIds.Contains(o.Id))
+                .ToList();
+
+            var grandSalesTotal = salesItems.Sum(i => i.LineTotal);
+            var grandCommission = salesOrders.Sum(o => o.Commission);
+            var grandKhajna = salesOrders.Sum(o => o.Khajna);
+            var grandDue = salesOrders.Sum(o => o.DueAmount);
+            var grandNetTotal = grandSalesTotal - grandCommission - grandKhajna - grandDue;
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Summary");
 
             // Title / header
-            ws.Range("A1:L1").Merge().Value = "KHONDAKAR TRADERS";
-            ws.Range("A1:L1").Style.Font.Bold = true;
-            ws.Range("A2:L2").Merge().Value = string.IsNullOrWhiteSpace(categoryName)
+            ws.Range("A1:M1").Merge().Value = "KHONDAKAR TRADERS";
+            ws.Range("A1:M1").Style.Font.Bold = true;
+            ws.Range("A2:M2").Merge().Value = string.IsNullOrWhiteSpace(categoryName)
                 ? "SUMMARY SHEET"
                 : $"{categoryName.ToUpperInvariant()} PRODUCTS SUMMARY SHEET";
-            ws.Range("A2:L2").Style.Font.Italic = true;
+            ws.Range("A2:M2").Style.Font.Italic = true;
 
             ws.Cell(4, 1).Value = "Date:";
             ws.Cell(4, 2).Value = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
             // Headers
-            var headers = new[] { "#", "CATEGORY", "PRODUCT", "SKU", "PCS", "OUT", "IN", "SELL", "ETP(PCS)", "ETP(CTN)", "AMOUNT", "DAMAGE" };
+            var headers = new[] { "#", "CATEGORY", "PRODUCT", "SKU", "CURRENT STOCK", "IN", "OUT", "DAMAGE", "SOLD QTY", "UNIT COST", "UNIT SELL PRICE", "STOCK VALUE", "SOLD AMOUNT" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(6, i + 1).Value = headers[i];
@@ -65,30 +82,62 @@ namespace KTrading.Pages.Reports
                 var ins = movements.Where(m => m.ProductId == p.Id && m.Quantity > 0).Sum(m => m.Quantity);
                 var outs = movements.Where(m => m.ProductId == p.Id && m.Quantity < 0).Sum(m => -m.Quantity);
                 var damage = movements.Where(m => m.ProductId == p.Id && string.Equals(m.MovementType, "DAMAGE", StringComparison.OrdinalIgnoreCase)).Sum(m => m.Quantity);
+                var soldQty = salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.Quantity);
+                var soldAmount = salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.LineTotal);
+                var stockValue = qty * p.Cost;
 
                 ws.Cell(row, 1).Value = row - 6; // serial
                 ws.Cell(row, 2).Value = p.ProductCategory?.Name ?? "Uncategorized";
                 ws.Cell(row, 3).Value = p.Name;
                 ws.Cell(row, 4).Value = p.SKU;
                 ws.Cell(row, 5).Value = qty;
-                ws.Cell(row, 6).Value = outs;
-                ws.Cell(row, 7).Value = ins;
-                ws.Cell(row, 8).Value = 0; // SELL placeholder
-                ws.Cell(row, 9).Value = p.Price; // ETP(PCS) use Price
-                ws.Cell(row, 10).Value = ""; // ETP(CTN) placeholder
-                ws.Cell(row, 11).Value = qty * p.Price; // amount
-                ws.Cell(row, 12).Value = damage;
+                ws.Cell(row, 6).Value = ins;
+                ws.Cell(row, 7).Value = outs;
+                ws.Cell(row, 8).Value = damage;
+                ws.Cell(row, 9).Value = soldQty;
+                ws.Cell(row, 10).Value = p.Cost;
+                ws.Cell(row, 11).Value = p.Price;
+                ws.Cell(row, 12).Value = stockValue;
+                ws.Cell(row, 13).Value = soldAmount;
 
                 // format numeric
-                ws.Cell(row, 5).Style.NumberFormat.Format = "0.00";
-                ws.Cell(row, 6).Style.NumberFormat.Format = "0.00";
-                ws.Cell(row, 7).Style.NumberFormat.Format = "0.00";
-                ws.Cell(row, 9).Style.NumberFormat.Format = "0.00";
-                ws.Cell(row, 11).Style.NumberFormat.Format = "0.00";
-                ws.Cell(row, 12).Style.NumberFormat.Format = "0.00";
+                for (int col = 5; col <= 13; col++)
+                {
+                    ws.Cell(row, col).Style.NumberFormat.Format = "0.00";
+                }
 
                 row++;
             }
+
+            var totalRow = row;
+            ws.Cell(totalRow, 1).Value = "TOTAL";
+            ws.Range(totalRow, 1, totalRow, 4).Merge();
+            ws.Cell(totalRow, 1).Style.Font.Bold = true;
+            ws.Cell(totalRow, 5).FormulaA1 = $"SUM(E7:E{row - 1})";
+            ws.Cell(totalRow, 6).FormulaA1 = $"SUM(F7:F{row - 1})";
+            ws.Cell(totalRow, 7).FormulaA1 = $"SUM(G7:G{row - 1})";
+            ws.Cell(totalRow, 8).FormulaA1 = $"SUM(H7:H{row - 1})";
+            ws.Cell(totalRow, 9).FormulaA1 = $"SUM(I7:I{row - 1})";
+            ws.Cell(totalRow, 12).FormulaA1 = $"SUM(L7:L{row - 1})";
+            ws.Cell(totalRow, 13).FormulaA1 = $"SUM(M7:M{row - 1})";
+            ws.Range(totalRow, 1, totalRow, 13).Style.Font.Bold = true;
+            ws.Range(totalRow, 5, totalRow, 13).Style.NumberFormat.Format = "0.00";
+
+            var summaryRow = totalRow + 3;
+            ws.Cell(summaryRow, 11).Value = "Total";
+            ws.Cell(summaryRow, 13).Value = grandSalesTotal;
+            ws.Cell(summaryRow + 1, 11).Value = "Commission";
+            ws.Cell(summaryRow + 1, 13).Value = grandCommission;
+            ws.Cell(summaryRow + 2, 11).Value = "Khajna";
+            ws.Cell(summaryRow + 2, 13).Value = grandKhajna;
+            ws.Cell(summaryRow + 3, 11).Value = "Due";
+            ws.Cell(summaryRow + 3, 13).Value = grandDue;
+            ws.Cell(summaryRow + 4, 11).Value = "Net Total";
+            ws.Cell(summaryRow + 4, 13).Value = grandNetTotal;
+            ws.Range(summaryRow, 11, summaryRow + 4, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(summaryRow, 11, summaryRow + 4, 11).Style.Font.Bold = true;
+            ws.Range(summaryRow, 13, summaryRow + 4, 13).Style.NumberFormat.Format = "0.00";
+            ws.Range(summaryRow + 4, 11, summaryRow + 4, 13).Style.Font.Bold = true;
 
             // Auto-fit columns
             ws.Columns().AdjustToContents();

@@ -15,10 +15,14 @@ namespace KTrading.Pages.SalesOrders
         }
 
         public IEnumerable<SalesOrder> Orders { get; set; } = Array.Empty<SalesOrder>();
+        public Dictionary<Guid, string> CustomerNames { get; set; } = new();
 
         public async Task OnGetAsync()
         {
-            Orders = await _db.SalesOrders.ToListAsync();
+            Orders = await _db.SalesOrders
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+            CustomerNames = await _db.Customers.ToDictionaryAsync(c => c.Id, c => c.Name);
         }
     }
 }

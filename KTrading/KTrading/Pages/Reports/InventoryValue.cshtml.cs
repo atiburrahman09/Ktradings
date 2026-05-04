@@ -39,10 +39,9 @@ namespace KTrading.Pages.Reports
                 .ToListAsync();
             var productIds = products.Select(p => p.Id).ToHashSet();
             var stocks = await _db.Stocks
-                .Where(s => productIds.Contains(s.ProductId))
                 .ToListAsync();
             var prodMap = products.ToDictionary(p => p.Id, p => p);
-            foreach(var s in stocks)
+            foreach(var s in stocks.Where(s => productIds.Contains(s.ProductId)))
             {
                 prodMap.TryGetValue(s.ProductId, out var p);
                 var qty = s.Quantity;

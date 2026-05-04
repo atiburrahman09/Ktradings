@@ -77,11 +77,17 @@ namespace KTrading.Data
             builder.Entity<SalesOrder>().Property(s => s.Tax).HasColumnType("decimal(18,4)");
             builder.Entity<SalesOrder>().Property(s => s.Discount).HasColumnType("decimal(18,4)");
             builder.Entity<SalesOrder>().Property(s => s.Total).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrder>().Property(s => s.Commission).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrder>().Property(s => s.Khajna).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrder>().Property(s => s.PaidAmount).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrder>().Property(s => s.DueAmount).HasColumnType("decimal(18,4)");
 
             builder.Entity<SalesOrderItem>().Property(i => i.UnitPrice).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrderItem>().Property(i => i.Quantity).HasColumnType("decimal(18,2)");
             builder.Entity<SalesOrderItem>().Property(i => i.LineTotal).HasColumnType("decimal(18,4)");
 
             builder.Entity<Payment>().Property(p => p.Amount).HasColumnType("decimal(18,4)");
+            builder.Entity<ProductReturnItem>().Property(ri => ri.Quantity).HasColumnType("decimal(18,2)");
             builder.Entity<Stock>().Property(s => s.Quantity).HasColumnType("decimal(18,4)");
             builder.Entity<StockMovement>().Property(sm => sm.Quantity).HasColumnType("decimal(18,4)");
         }

@@ -13,6 +13,12 @@
         });
     }
 
+    function enableRowControls(row){
+        row.querySelectorAll('input, select, textarea').forEach(function(input){
+            input.disabled = false;
+        });
+    }
+
     function bindTable(tableId, addBtnId){
         var table = document.getElementById(tableId);
         if(!table) return;
@@ -23,6 +29,7 @@
         addBtn && addBtn.addEventListener('click', function(){
             var clone = template.cloneNode(true);
             clone.classList.remove('template','d-none');
+            enableRowControls(clone);
             tbody.appendChild(clone);
             updateIndexes(tbody, 'tr:not(.template)');
             bindRemoveButtons(tbody);
@@ -65,6 +72,7 @@
             var template = tbody.querySelector('.template');
             var clone = template.cloneNode(true);
             clone.classList.remove('template','d-none');
+            enableRowControls(clone);
             // set default unit price if first option has data-price
             var sel = clone.querySelector('.product-select');
             if(sel){
@@ -105,11 +113,25 @@
         });
         var el = document.getElementById('subtotal');
         if(el) el.textContent = subtotal.toFixed(2);
+
+        var paidInput = document.getElementById('SalesOrder_PaidAmount');
+        var commissionInput = document.getElementById('SalesOrder_Commission');
+        var paid = parseFloat(paidInput && paidInput.value) || 0;
+        var commission = parseFloat(commissionInput && commissionInput.value) || 0;
+        var dueEl = document.getElementById('dueAmount');
+        var netEl = document.getElementById('netAfterExpenses');
+        if(dueEl) dueEl.value = Math.max(subtotal - paid, 0).toFixed(2);
+        if(netEl) netEl.textContent = (subtotal - commission).toFixed(2);
     }
 
     document.addEventListener('DOMContentLoaded', function(){
         bindTable('returnItemsTable','addReturnItem');
         bindSalesOrderTable();
-        bindTable('itemsTable','addItem');
+        document.querySelectorAll('.money-input').forEach(function(input){
+            input.addEventListener('input', function(){
+                if(window.computeAll) window.computeAll();
+            });
+        });
+        if(window.computeAll) window.computeAll();
     });
 })();

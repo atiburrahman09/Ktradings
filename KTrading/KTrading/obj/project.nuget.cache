@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hmQMyxpK/O8=",
+  "dgSpecHash": "PW5QQU+tbJA=",
   "success": true,
-  "projectFilePath": "D:\\Development\\KTrading\\KTrading\\KTrading.csproj",
+  "projectFilePath": "D:\\work\\Ktradings\\KTrading\\KTrading\\KTrading.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\atibur.ASABD\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\atibur.ASABD\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
@@ -103,9 +103,9 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "KTrading depends on Markdig (>= 0.30.9) but Markdig 0.30.9 was not found. Markdig 0.31.0 was resolved instead.",
-      "projectPath": "D:\\Development\\KTrading\\KTrading\\KTrading.csproj",
+      "projectPath": "D:\\work\\Ktradings\\KTrading\\KTrading\\KTrading.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\Development\\KTrading\\KTrading\\KTrading.csproj",
+      "filePath": "D:\\work\\Ktradings\\KTrading\\KTrading\\KTrading.csproj",
       "libraryId": "Markdig",
       "targetGraphs": [
         "net9.0"

@@ -18,6 +18,10 @@ namespace KTrading.Models
         public decimal Tax { get; set; }
         public decimal Discount { get; set; }
         public decimal Total { get; set; }
+        public decimal Commission { get; set; }
+        public decimal Khajna { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal DueAmount { get; set; }
 
         // audit
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
