@@ -1,7 +1,5 @@
 is_global = true
 build_property.TargetFramework = net9.0
-build_property.TargetFrameworkIdentifier = .NETCoreApp
-build_property.TargetFrameworkVersion = v9.0
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
 build_property.ProjectTypeGuids = 
@@ -96,6 +94,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/Development/KTrading/KTrading/Pages/Products/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdHNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Development/KTrading/KTrading/Pages/Reports/ExportInventoryExcel.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwb3J0c1xFeHBvcnRJbnZlbnRvcnlFeGNlbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Development/KTrading/KTrading/Pages/Reports/InventoryValue.cshtml]
