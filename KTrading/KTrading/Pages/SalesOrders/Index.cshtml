@@ -9,19 +9,47 @@
         <h3 class="card-title">Sales Orders</h3>
         <a class="btn btn-primary" asp-page="Create">Create New</a>
     </div>
-    <div class="card-body table-responsive">
-        <table class="table table-hover table-bordered">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <input asp-for="SearchTerm" class="form-control" placeholder="Order# or customer" />
+            </div>
+            <div class="col-md-3">
+                <select asp-for="CustomerId" asp-items="Model.CustomerList" class="form-select">
+                    <option value="">-- All Customers --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select asp-for="SalesOfficerId" asp-items="Model.SalesOfficerList" class="form-select">
+                    <option value="">-- All Sales Officers --</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input asp-for="DateFrom" type="date" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <input asp-for="DateTo" type="date" class="form-control" />
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filter</button>
+                <a asp-page="Index" class="btn btn-outline-secondary"><i class="fas fa-times"></i> Clear</a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
             <thead>
                 <tr>
                     <th>Order#</th>
                     <th>Customer</th>
+                    <th>Sales Officer</th>
                     <th>Date</th>
                     <th class="text-end">Total</th>
                     <th class="text-end">Paid</th>
                     <th class="text-end">Due</th>
                     <th class="text-end">Commission</th>
                     <th class="text-end">Khajna</th>
-                    <th style="width:100px"></th>
+                    <th style="width:120px"></th>
                 </tr>
             </thead>
             <tbody>
@@ -30,6 +58,7 @@
                 <tr>
                     <td>@o.OrderNumber</td>
                     <td>@(Model.CustomerNames.TryGetValue(o.CustomerId, out var customerName) ? customerName : o.CustomerId)</td>
+                    <td>@(o.SalesOfficerId.HasValue && Model.SalesOfficerNames.TryGetValue(o.SalesOfficerId.Value, out var officerName) ? officerName : "-")</td>
                     <td>@o.OrderDate.ToString("yyyy-MM-dd")</td>
                     <td class="text-end">@o.Total.ToString("N2")</td>
                     <td class="text-end">@o.PaidAmount.ToString("N2")</td>
@@ -38,10 +67,15 @@
                     <td class="text-end">@o.Khajna.ToString("N2")</td>
                     <td>
                         <a class="btn btn-sm btn-outline-secondary" asp-page="Details" asp-route-id="@o.Id"><i class="fas fa-eye"></i></a>
+                        <a class="btn btn-sm btn-outline-success" asp-page-handler="Print" asp-route-id="@o.Id" title="Download Excel">
+                            <i class="fas fa-print"></i>
+                        </a>
                     </td>
                 </tr>
             }
             </tbody>
         </table>
+        </div>
+        <partial name="_Pagination" model="Model.Pager" />
     </div>
 </div>

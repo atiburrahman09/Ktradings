@@ -11,6 +11,7 @@
     <div class="card-body">
         <h4>Order #: @Model.Order?.OrderNumber</h4>
         <p>Customer: @(Model.Customer?.Name ?? Model.Order?.CustomerId.ToString())</p>
+        <p>Sales Officer: @(Model.SalesOfficer?.Name ?? "-")</p>
         <p>Date: @Model.Order?.OrderDate.ToString("yyyy-MM-dd")</p>
 
         <div class="row mb-3">
@@ -33,6 +34,56 @@
             </div>
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Khajna</button>
+            </div>
+        </form>
+
+        @if ((Model.Order?.DueAmount ?? 0) > 0)
+        {
+            <form method="post" asp-page-handler="CollectDue" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-4">
+                <div class="col-md-3">
+                    <label asp-for="CollectionAmount" class="form-label">Due Collection</label>
+                    <input asp-for="CollectionAmount" class="form-control" min="0.01" max="@Model.Order?.DueAmount" step="0.01" />
+                    <span asp-validation-for="CollectionAmount" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PaymentMethodId" class="form-label">Payment Method</label>
+                    <select asp-for="PaymentMethodId" asp-items="Model.PaymentMethodList" class="form-select">
+                        <option value="">-- select --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="CollectionReference" class="form-label">Reference</label>
+                    <input asp-for="CollectionReference" class="form-control" />
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-success"><i class="fas fa-hand-holding-dollar"></i> Collect Due</button>
+                </div>
+            </form>
+        }
+
+        <form method="post" asp-page-handler="RecordDamage" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-4">
+            <div class="col-md-4">
+                <label asp-for="DamageProductId" class="form-label">Damage Product</label>
+                <select asp-for="DamageProductId" class="form-select">
+                    <option value="">-- select --</option>
+                    @foreach (var item in Model.Items)
+                    {
+                        <option value="@item.ProductId">@(Model.ProductNames.TryGetValue(item.ProductId, out var productName) ? productName : item.ProductId)</option>
+                    }
+                </select>
+                <span asp-validation-for="DamageProductId" class="text-danger"></span>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="DamageQuantity" class="form-label">Damage Qty</label>
+                <input asp-for="DamageQuantity" class="form-control" min="0.01" step="0.01" />
+                <span asp-validation-for="DamageQuantity" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="DamageNote" class="form-label">Damage Note</label>
+                <input asp-for="DamageNote" class="form-control" />
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-warning"><i class="fas fa-triangle-exclamation"></i> Record Damage</button>
             </div>
         </form>
 
@@ -67,6 +118,7 @@
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Method</th>
                         <th>Reference</th>
                         <th class="text-end">Amount</th>
                     </tr>
@@ -76,6 +128,7 @@
                 {
                     <tr>
                         <td>@payment.PaymentDate.ToString("yyyy-MM-dd")</td>
+                        <td>@(payment.PaymentMethodId.HasValue && Model.PaymentMethodNames.TryGetValue(payment.PaymentMethodId.Value, out var methodName) ? methodName : "")</td>
                         <td>@payment.Reference</td>
                         <td class="text-end">@payment.Amount.ToString("N2")</td>
                     </tr>

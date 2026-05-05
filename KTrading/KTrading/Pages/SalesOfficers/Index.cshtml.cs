@@ -1,21 +1,21 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using KTrading.Data;
 using KTrading.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace KTrading.Pages.Stocks
+namespace KTrading.Pages.SalesOfficers
 {
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _db;
+
         public IndexModel(ApplicationDbContext db)
         {
             _db = db;
         }
 
-        public IEnumerable<Stock> Stocks { get; set; } = Array.Empty<Stock>();
-        public Dictionary<Guid, string> ProductMap { get; set; } = new();
+        public IEnumerable<SalesOfficer> SalesOfficers { get; set; } = Array.Empty<SalesOfficer>();
         public PaginationModel Pager { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
@@ -26,15 +26,13 @@ namespace KTrading.Pages.Stocks
             const int pageSize = 10;
             PageNumber = Math.Max(PageNumber, 1);
 
-            var query = _db.Stocks.OrderBy(s => s.ProductId);
+            var query = _db.SalesOfficers.OrderBy(o => o.Name);
             var totalItems = await query.CountAsync();
             Pager = new PaginationModel { PageNumber = PageNumber, PageSize = pageSize, TotalItems = totalItems };
-            Stocks = await query
+            SalesOfficers = await query
                 .Skip((PageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-            var products = await _db.Products.ToListAsync();
-            ProductMap = products.ToDictionary(p => p.Id, p => p.Name);
         }
     }
 }

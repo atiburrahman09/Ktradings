@@ -15,6 +15,7 @@ namespace KTrading.Data
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<ProductCategory> ProductCategories { get; set; } = null!;
         public DbSet<Customer> Customers { get; set; } = null!;
+        public DbSet<SalesOfficer> SalesOfficers { get; set; } = null!;
         public DbSet<SalesOrder> SalesOrders { get; set; } = null!;
         public DbSet<SalesOrderItem> SalesOrderItems { get; set; } = null!;
         public DbSet<Payment> Payments { get; set; } = null!;
@@ -46,6 +47,12 @@ namespace KTrading.Data
             // Customers
             builder.Entity<Customer>().ToTable("Customers");
             builder.Entity<Customer>().HasKey(c => c.Id);
+
+            // Sales officers
+            builder.Entity<SalesOfficer>().ToTable("SalesOfficers");
+            builder.Entity<SalesOfficer>().HasKey(s => s.Id);
+            builder.Entity<SalesOfficer>().Property(s => s.Name).HasMaxLength(250).IsRequired();
+            builder.Entity<SalesOfficer>().Property(s => s.Code).HasMaxLength(50);
 
             // Sales orders
             builder.Entity<SalesOrder>().ToTable("SalesOrders");

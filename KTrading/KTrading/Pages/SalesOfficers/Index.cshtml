@@ -1,0 +1,41 @@
+@page
+@model KTrading.Pages.SalesOfficers.IndexModel
+@{
+    ViewData["Title"] = "Sales Officers";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Sales Officers</h3>
+        <a class="btn btn-primary" asp-page="Create">Create New</a>
+    </div>
+    <div class="card-body table-responsive">
+        <table class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Active</th>
+                    <th style="width:120px"></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var officer in Model.SalesOfficers)
+            {
+                <tr>
+                    <td>@officer.Code</td>
+                    <td>@officer.Name</td>
+                    <td>@officer.Phone</td>
+                    <td>@(officer.IsActive ? "Yes" : "No")</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-secondary" asp-page="Edit" asp-route-id="@officer.Id"><i class="fas fa-edit"></i></a>
+                        <a class="btn btn-sm btn-outline-danger" asp-page="Delete" asp-route-id="@officer.Id"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="Model.Pager" />
+    </div>
+</div>

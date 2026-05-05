@@ -25,6 +25,7 @@ namespace KTrading.Pages.SalesOrders
         public List<SalesOrderItem> Items { get; set; } = new();
 
         public IEnumerable<SelectListItem> CustomerList { get; set; } = Array.Empty<SelectListItem>();
+        public IEnumerable<SelectListItem> SalesOfficerList { get; set; } = Array.Empty<SelectListItem>();
         public List<KTrading.Models.Product> ProductsFull { get; set; } = new();
 
         public async Task OnGetAsync()
@@ -95,6 +96,11 @@ namespace KTrading.Pages.SalesOrders
         private async Task LoadListsAsync()
         {
             CustomerList = await _db.Customers.Select(c => new SelectListItem(c.Name, c.Id.ToString())).ToListAsync();
+            SalesOfficerList = await _db.SalesOfficers
+                .Where(o => o.IsActive)
+                .OrderBy(o => o.Name)
+                .Select(o => new SelectListItem(o.Name, o.Id.ToString()))
+                .ToListAsync();
             ProductsFull = await _db.Products.ToListAsync();
         }
     }

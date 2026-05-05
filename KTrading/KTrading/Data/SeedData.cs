@@ -134,6 +134,15 @@ namespace KTrading.Data
                 await context.SaveChangesAsync();
             }
 
+            // Seed sales officers
+            if (!await context.SalesOfficers.AnyAsync())
+            {
+                await context.SalesOfficers.AddRangeAsync(
+                    new SalesOfficer { Id = Guid.NewGuid(), Code = "SOF-001", Name = "Default Sales Officer", Phone = "555-0200", CreatedAt = DateTimeOffset.UtcNow },
+                    new SalesOfficer { Id = Guid.NewGuid(), Code = "SOF-002", Name = "Field Sales Officer", Phone = "555-0201", CreatedAt = DateTimeOffset.UtcNow });
+                await context.SaveChangesAsync();
+            }
+
             // Seed stocks and movements - varied scenarios
             if (!await context.Stocks.AnyAsync())
             {
@@ -171,15 +180,16 @@ namespace KTrading.Data
             {
                 var products = await context.Products.ToListAsync();
                 var customers = await context.Customers.ToListAsync();
+                var officers = await context.SalesOfficers.ToListAsync();
 
-                var so1 = new SalesOrder { Id = Guid.NewGuid(), OrderNumber = "SO-1001", CustomerId = customers[0].Id, OrderDate = DateTimeOffset.UtcNow.AddDays(-7), CreatedAt = DateTimeOffset.UtcNow.AddDays(-7), Subtotal = 0m, Total = 0m };
+                var so1 = new SalesOrder { Id = Guid.NewGuid(), OrderNumber = "SO-1001", CustomerId = customers[0].Id, SalesOfficerId = officers.FirstOrDefault()?.Id, OrderDate = DateTimeOffset.UtcNow.AddDays(-7), CreatedAt = DateTimeOffset.UtcNow.AddDays(-7), Subtotal = 0m, Total = 0m };
                 var so1Items = new List<SalesOrderItem>();
                 so1Items.Add(new SalesOrderItem { Id = Guid.NewGuid(), SalesOrderId = so1.Id, ProductId = products[0].Id, Quantity = 5, UnitPrice = products[0].Price, LineTotal = 5 * products[0].Price });
                 so1Items.Add(new SalesOrderItem { Id = Guid.NewGuid(), SalesOrderId = so1.Id, ProductId = products[1].Id, Quantity = 2, UnitPrice = products[1].Price, LineTotal = 2 * products[1].Price });
                 so1.Subtotal = so1Items.Sum(i => i.LineTotal);
                 so1.Total = so1.Subtotal;
 
-                var so2 = new SalesOrder { Id = Guid.NewGuid(), OrderNumber = "SO-1002", CustomerId = customers[1].Id, OrderDate = DateTimeOffset.UtcNow.AddDays(-3), CreatedAt = DateTimeOffset.UtcNow.AddDays(-3), Subtotal = 0m, Total = 0m };
+                var so2 = new SalesOrder { Id = Guid.NewGuid(), OrderNumber = "SO-1002", CustomerId = customers[1].Id, SalesOfficerId = officers.Skip(1).FirstOrDefault()?.Id, OrderDate = DateTimeOffset.UtcNow.AddDays(-3), CreatedAt = DateTimeOffset.UtcNow.AddDays(-3), Subtotal = 0m, Total = 0m };
                 var so2Items = new List<SalesOrderItem>();
                 so2Items.Add(new SalesOrderItem { Id = Guid.NewGuid(), SalesOrderId = so2.Id, ProductId = products[2].Id, Quantity = 10, UnitPrice = products[2].Price, LineTotal = 10 * products[2].Price });
                 so2.Subtotal = so2Items.Sum(i => i.LineTotal);

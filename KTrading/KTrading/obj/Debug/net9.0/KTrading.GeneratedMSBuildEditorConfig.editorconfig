@@ -106,6 +106,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwb3J0c1xJbnZlbnRvcnlWYWx1ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/work/Ktradings/KTrading/KTrading/Pages/SalesOfficers/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2FsZXNPZmZpY2Vyc1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/work/Ktradings/KTrading/KTrading/Pages/SalesOfficers/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2FsZXNPZmZpY2Vyc1xEZWxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/work/Ktradings/KTrading/KTrading/Pages/SalesOfficers/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2FsZXNPZmZpY2Vyc1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/work/Ktradings/KTrading/KTrading/Pages/SalesOfficers/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2FsZXNPZmZpY2Vyc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/work/Ktradings/KTrading/KTrading/Pages/SalesOrders/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2FsZXNPcmRlcnNcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -120,6 +136,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/work/Ktradings/KTrading/KTrading/Pages/Shared/_LoginPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9Mb2dpblBhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/work/Ktradings/KTrading/KTrading/Pages/Shared/_Pagination.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9QYWdpbmF0aW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/work/Ktradings/KTrading/KTrading/Pages/Shared/_ValidationScriptsPartial.cshtml]
