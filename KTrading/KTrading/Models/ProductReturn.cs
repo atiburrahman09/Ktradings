@@ -10,6 +10,7 @@ namespace KTrading.Models
         public string ReturnNumber { get; set; } = null!;
 
         public Guid? CustomerId { get; set; }
+        public Guid? SalesOrderId { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 

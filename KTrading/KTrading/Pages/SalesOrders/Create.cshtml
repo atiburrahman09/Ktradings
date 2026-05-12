@@ -52,7 +52,8 @@
                                 <option value="">-- select --</option>
                                 @foreach (var p in Model.ProductsFull)
                                 {
-                                    <option value="@p.Id" data-price="@p.Price">@p.Name</option>
+                                    var stock = Model.ProductStockMap.GetValueOrDefault(p.Id);
+                                    <option value="@p.Id" data-price="@p.Price" data-stock="@stock">@p.Name (Stock: @stock.ToString("N2"))</option>
                                 }
                             </select>
                         </td>
@@ -71,11 +72,12 @@
                                     @foreach (var p in Model.ProductsFull)
                                     {
                                         var sel = p.Id.ToString() == Model.Items[i].ProductId.ToString();
+                                        var stock = Model.ProductStockMap.GetValueOrDefault(p.Id);
                                         if(sel){
-                                            <text><option value="@p.Id" data-price="@p.Price" selected>@p.Name</option></text>
+                                            <text><option value="@p.Id" data-price="@p.Price" data-stock="@stock" selected>@p.Name (Stock: @stock.ToString("N2"))</option></text>
                                         }
                                         else{
-                                            <text><option value="@p.Id" data-price="@p.Price">@p.Name</option></text>
+                                            <text><option value="@p.Id" data-price="@p.Price" data-stock="@stock">@p.Name (Stock: @stock.ToString("N2"))</option></text>
                                         }
                                     }
                                 </select>

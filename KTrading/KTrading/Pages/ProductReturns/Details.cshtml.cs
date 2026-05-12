@@ -19,6 +19,7 @@ namespace KTrading.Pages.ProductReturns
         public IEnumerable<ProductReturnItem>? Items { get; set; }
         public Dictionary<Guid, string> ProductMap { get; set; } = new();
         public string? CustomerName { get; set; }
+        public string? SalesOrderNumber { get; set; }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
@@ -31,6 +32,11 @@ namespace KTrading.Pages.ProductReturns
             {
                 var c = await _db.Customers.FindAsync(Return.CustomerId.Value);
                 CustomerName = c?.Name;
+            }
+            if (Return.SalesOrderId != null)
+            {
+                var order = await _db.SalesOrders.FindAsync(Return.SalesOrderId.Value);
+                SalesOrderNumber = order?.OrderNumber;
             }
             return Page();
         }

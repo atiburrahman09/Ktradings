@@ -12,7 +12,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // Add services
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlOptions =>
+        sqlOptions.UseCompatibilityLevel(120)));
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     {
@@ -24,6 +25,13 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/Login";
+});
+
 // Require authentication for all Razor Pages by default, allow anonymous for login/register
 builder.Services.AddRazorPages(options =>
 {
@@ -32,10 +40,8 @@ builder.Services.AddRazorPages(options =>
 
     // Allow anonymous to login/register pages we provide
     options.Conventions.AllowAnonymousToPage("/Account/Login");
-    options.Conventions.AllowAnonymousToPage("/Account/Register");
 
-    // If Identity UI endpoints are present, allow anonymous to the Identity account folder
-    options.Conventions.AllowAnonymousToFolder("/Identity/Account");
+    // Keep unauthenticated users on the custom login page.
 });
 
 builder.Services.AddControllersWithViews();

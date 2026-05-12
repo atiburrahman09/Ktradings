@@ -17,6 +17,7 @@ namespace KTrading.Pages.ProductReturns
 
         public IEnumerable<ProductReturn> Returns { get; set; } = Array.Empty<ProductReturn>();
         public Dictionary<Guid, string> CustomerMap { get; set; } = new();
+        public Dictionary<Guid, string> SalesOrderMap { get; set; } = new();
         public PaginationModel Pager { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
@@ -38,6 +39,8 @@ namespace KTrading.Pages.ProductReturns
                 .ToListAsync();
             var customers = await _db.Customers.ToListAsync();
             CustomerMap = customers.ToDictionary(c => c.Id, c => c.Name);
+            var salesOrders = await _db.SalesOrders.ToListAsync();
+            SalesOrderMap = salesOrders.ToDictionary(o => o.Id, o => o.OrderNumber);
         }
     }
 }

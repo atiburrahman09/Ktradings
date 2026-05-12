@@ -1,6 +1,6 @@
+using KTrading.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using KTrading.Models;
 
 namespace KTrading.Data
 {
@@ -23,7 +23,7 @@ namespace KTrading.Data
             {
                 try
                 {
-                    await context.Database.EnsureCreatedAsync();
+                    _ = await context.Database.EnsureCreatedAsync();
                 }
                 catch
                 {
@@ -37,7 +37,7 @@ namespace KTrading.Data
             {
                 if (!await roleManager.RoleExistsAsync(role))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(role));
+                    _ = await roleManager.CreateAsync(new IdentityRole(role));
                 }
             }
 
@@ -57,23 +57,23 @@ namespace KTrading.Data
                 var result = await userManager.CreateAsync(admin, desiredPassword);
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(admin, "Admin");
+                    _ = await userManager.AddToRoleAsync(admin, "Admin");
                 }
             }
             else
             {
                 if (!string.Equals(admin.UserName, adminEmail, StringComparison.OrdinalIgnoreCase))
                 {
-                    await userManager.SetUserNameAsync(admin, adminEmail);
+                    _ = await userManager.SetUserNameAsync(admin, adminEmail);
                 }
                 if (!await userManager.IsInRoleAsync(admin, "Admin"))
                 {
-                    await userManager.AddToRoleAsync(admin, "Admin");
+                    _ = await userManager.AddToRoleAsync(admin, "Admin");
                 }
                 if (!admin.EmailConfirmed)
                 {
                     admin.EmailConfirmed = true;
-                    await userManager.UpdateAsync(admin);
+                    _ = await userManager.UpdateAsync(admin);
                 }
                 var hasPassword = await userManager.HasPasswordAsync(admin);
                 var passwordValid = await userManager.CheckPasswordAsync(admin, desiredPassword);
@@ -81,9 +81,9 @@ namespace KTrading.Data
                 {
                     if (hasPassword)
                     {
-                        await userManager.RemovePasswordAsync(admin);
+                        _ = await userManager.RemovePasswordAsync(admin);
                     }
-                    await userManager.AddPasswordAsync(admin, desiredPassword);
+                    _ = await userManager.AddPasswordAsync(admin, desiredPassword);
                 }
             }
 
@@ -97,7 +97,7 @@ namespace KTrading.Data
                     new ProductCategory { Id = Guid.NewGuid(), Name = "General" }
                 };
                 await context.ProductCategories.AddRangeAsync(categories);
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
 
             // Seed products - add varied scenarios
@@ -117,7 +117,7 @@ namespace KTrading.Data
                     new Product { Id = Guid.NewGuid(), SKU = "P-HIGH", Name = "High Stock Item", Unit = "Pallet", Price = 100m, Cost = 60m, VATPercent = 5m, IsActive = true, CreatedAt = DateTimeOffset.UtcNow, ProductCategoryId = catMap.GetValueOrDefault("Akij") }
                 };
                 await context.Products.AddRangeAsync(products);
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
 
             // Seed customers
@@ -131,7 +131,7 @@ namespace KTrading.Data
                     new Customer { Id = Guid.NewGuid(), Name = "Wholesale Co", Code = "CUST-004", ContactName = "Carol", Phone = "555-0103", CreatedAt = DateTimeOffset.UtcNow }
                 };
                 await context.Customers.AddRangeAsync(customers);
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
 
             // Seed sales officers
@@ -140,7 +140,7 @@ namespace KTrading.Data
                 await context.SalesOfficers.AddRangeAsync(
                     new SalesOfficer { Id = Guid.NewGuid(), Code = "SOF-001", Name = "Default Sales Officer", Phone = "555-0200", CreatedAt = DateTimeOffset.UtcNow },
                     new SalesOfficer { Id = Guid.NewGuid(), Code = "SOF-002", Name = "Field Sales Officer", Phone = "555-0201", CreatedAt = DateTimeOffset.UtcNow });
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
 
             // Seed stocks and movements - varied scenarios
@@ -172,7 +172,7 @@ namespace KTrading.Data
 
                 await context.Stocks.AddRangeAsync(stocks);
                 await context.StockMovements.AddRangeAsync(movements);
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
 
             // Seed multiple sales orders with items to create different scenarios
@@ -202,34 +202,36 @@ namespace KTrading.Data
                 // stock movements for these orders
                 foreach (var it in so1Items.Concat(so2Items))
                 {
-                    context.StockMovements.Add(new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = -it.Quantity, MovementType = "OUT", ReferenceId = it.SalesOrderId, Note = "Sale order", CreatedAt = DateTimeOffset.UtcNow.AddDays(-3) });
+                    _ = context.StockMovements.Add(new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = -it.Quantity, MovementType = "OUT", ReferenceId = it.SalesOrderId, Note = "Sale order", CreatedAt = DateTimeOffset.UtcNow.AddDays(-3) });
                     var stock = await context.Stocks.FirstOrDefaultAsync(s => s.ProductId == it.ProductId);
                     if (stock != null) { stock.Quantity -= it.Quantity; stock.UpdatedAt = DateTimeOffset.UtcNow.AddDays(-3); }
                 }
 
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
 
             // Seed product returns both processed and open
             if (!await context.ProductReturns.AnyAsync())
             {
-                var prod = await context.Products.FirstOrDefaultAsync();
-                var cust = await context.Customers.FirstOrDefaultAsync();
-                if (prod != null)
+                var order = await context.SalesOrders.OrderBy(o => o.CreatedAt).FirstOrDefaultAsync();
+                var orderItem = order == null
+                    ? null
+                    : await context.SalesOrderItems.FirstOrDefaultAsync(i => i.SalesOrderId == order.Id);
+                if (order != null && orderItem != null)
                 {
-                    var open = new ProductReturn { Id = Guid.NewGuid(), ReturnNumber = "R-OPEN-1", CustomerId = cust?.Id, Reason = "Wrong item", Status = "Open", CreatedAt = DateTimeOffset.UtcNow };
-                    var proc = new ProductReturn { Id = Guid.NewGuid(), ReturnNumber = "R-PROC-1", CustomerId = cust?.Id, Reason = "Damaged", Status = "Processed", CreatedAt = DateTimeOffset.UtcNow.AddDays(-2) };
+                    var open = new ProductReturn { Id = Guid.NewGuid(), ReturnNumber = "R-OPEN-1", CustomerId = order.CustomerId, SalesOrderId = order.Id, Reason = "Wrong item", Status = "Open", CreatedAt = DateTimeOffset.UtcNow };
+                    var proc = new ProductReturn { Id = Guid.NewGuid(), ReturnNumber = "R-PROC-1", CustomerId = order.CustomerId, SalesOrderId = order.Id, Reason = "Damaged", Status = "Processed", CreatedAt = DateTimeOffset.UtcNow.AddDays(-2) };
                     await context.ProductReturns.AddRangeAsync(open, proc);
-                    await context.SaveChangesAsync();
+                    _ = await context.SaveChangesAsync();
 
-                    var openItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = open.Id, ProductId = prod.Id, Quantity = 1, IsDamaged = false, Notes = "Customer changed mind" };
-                    var procItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = proc.Id, ProductId = prod.Id, Quantity = 2, IsDamaged = true, Notes = "Expired" };
+                    var openItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = open.Id, ProductId = orderItem.ProductId, Quantity = 1, IsDamaged = false, Notes = "Customer changed mind" };
+                    var procItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = proc.Id, ProductId = orderItem.ProductId, Quantity = 1, IsDamaged = true, Notes = "Expired" };
                     await context.ProductReturnItems.AddRangeAsync(openItem, procItem);
 
                     // Processed return: add stock movement of type DAMAGE for damaged and RETURN for undamaged
-                    context.StockMovements.Add(new StockMovement { Id = Guid.NewGuid(), ProductId = procItem.ProductId, Quantity = 0, MovementType = "DAMAGE", ReferenceId = proc.Id, Note = procItem.Notes, CreatedAt = DateTimeOffset.UtcNow.AddDays(-1) });
+                    _ = context.StockMovements.Add(new StockMovement { Id = Guid.NewGuid(), ProductId = procItem.ProductId, Quantity = 0, MovementType = "DAMAGE", ReferenceId = proc.Id, Note = procItem.Notes, CreatedAt = DateTimeOffset.UtcNow.AddDays(-1) });
 
-                    await context.SaveChangesAsync();
+                    _ = await context.SaveChangesAsync();
                 }
             }
 
@@ -237,13 +239,13 @@ namespace KTrading.Data
             if (!await context.PaymentMethods.AnyAsync())
             {
                 context.PaymentMethods.AddRange(new PaymentMethod { Name = "Cash" }, new PaymentMethod { Name = "BankTransfer" }, new PaymentMethod { Name = "CreditCard" });
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
 
             if (!await context.OrderStatuses.AnyAsync())
             {
                 context.OrderStatuses.AddRange(new OrderStatus { Id = 1, Name = "Draft" }, new OrderStatus { Id = 2, Name = "Confirmed" }, new OrderStatus { Id = 5, Name = "Completed" });
-                await context.SaveChangesAsync();
+                _ = await context.SaveChangesAsync();
             }
         }
     }

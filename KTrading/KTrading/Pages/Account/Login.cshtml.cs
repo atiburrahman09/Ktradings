@@ -25,9 +25,15 @@ namespace KTrading.Pages.Account
             public bool RememberMe { get; set; }
         }
 
-        public void OnGet(string? returnUrl = null)
+        public IActionResult OnGet(string? returnUrl = null)
         {
+            if (User?.Identity?.IsAuthenticated ?? false)
+            {
+                return RedirectToPage("/Index");
+            }
+
             ReturnUrl = returnUrl;
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)

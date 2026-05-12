@@ -27,6 +27,7 @@ namespace KTrading.Pages.SalesOrders
         public IEnumerable<SelectListItem> CustomerList { get; set; } = Array.Empty<SelectListItem>();
         public IEnumerable<SelectListItem> SalesOfficerList { get; set; } = Array.Empty<SelectListItem>();
         public List<KTrading.Models.Product> ProductsFull { get; set; } = new();
+        public Dictionary<Guid, decimal> ProductStockMap { get; set; } = new();
 
         public async Task OnGetAsync()
         {
@@ -35,6 +36,18 @@ namespace KTrading.Pages.SalesOrders
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!ModelState.IsValid)
+            {
+                await LoadListsAsync();
+                return Page();
+            }
+
+            ValidateItems();
+            if (ModelState.IsValid)
+            {
+                await ValidateStockAvailabilityAsync();
+            }
+
             if (!ModelState.IsValid)
             {
                 await LoadListsAsync();
@@ -93,6 +106,56 @@ namespace KTrading.Pages.SalesOrders
             return RedirectToPage("Index");
         }
 
+        private void ValidateItems()
+        {
+            if (Items.Count == 0)
+            {
+                ModelState.AddModelError(nameof(Items), "Add at least one product before creating the sales order.");
+                return;
+            }
+
+            for (var i = 0; i < Items.Count; i++)
+            {
+                if (Items[i].ProductId == Guid.Empty)
+                {
+                    ModelState.AddModelError($"Items[{i}].ProductId", "Select a product.");
+                }
+
+                if (Items[i].Quantity <= 0)
+                {
+                    ModelState.AddModelError($"Items[{i}].Quantity", "Quantity must be greater than zero.");
+                }
+            }
+        }
+
+        private async Task ValidateStockAvailabilityAsync()
+        {
+            var requestedByProduct = Items
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+
+            var productIds = requestedByProduct.Keys.ToList();
+            var productNames = await _db.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.Name);
+
+            var availableByProduct = await _db.Stocks
+                .Where(s => productIds.Contains(s.ProductId))
+                .ToDictionaryAsync(s => s.ProductId, s => s.Quantity);
+
+            foreach (var request in requestedByProduct)
+            {
+                var available = availableByProduct.GetValueOrDefault(request.Key);
+                if (request.Value <= available)
+                {
+                    continue;
+                }
+
+                var productName = productNames.GetValueOrDefault(request.Key, "Selected product");
+                ModelState.AddModelError(nameof(Items), $"{productName} has only {available:N2} in stock, but this order needs {request.Value:N2}.");
+            }
+        }
+
         private async Task LoadListsAsync()
         {
             CustomerList = await _db.Customers.Select(c => new SelectListItem(c.Name, c.Id.ToString())).ToListAsync();
@@ -102,6 +165,7 @@ namespace KTrading.Pages.SalesOrders
                 .Select(o => new SelectListItem(o.Name, o.Id.ToString()))
                 .ToListAsync();
             ProductsFull = await _db.Products.ToListAsync();
+            ProductStockMap = await _db.Stocks.ToDictionaryAsync(s => s.ProductId, s => s.Quantity);
         }
     }
 }

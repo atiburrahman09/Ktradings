@@ -1,0 +1,13 @@
+/* Minimal AdminLTE-like styles for local bundle (not full AdminLTE) */
+:root{--sidebar-bg:#343a40;--sidebar-color:#c2c7d0;--brand-bg:#0069d9}
+body{background:#f4f6f9}
+.main-sidebar{width:250px;background:var(--sidebar-bg);min-height:100vh;position:fixed}
+.brand-link{display:flex;align-items:center;padding:.5rem 1rem;color:#fff;background:var(--brand-bg);}
+.sidebar .nav-sidebar .nav-link{color:var(--sidebar-color);padding:.5rem 1rem;display:flex;align-items:center}
+.sidebar .nav-sidebar .nav-link .nav-icon{width:1.25rem;margin-right:.5rem}
+.content-wrapper{margin-left:250px;padding-top:1rem}
+.main-header{position:fixed;left:250px;right:0;z-index:1030}
+.content-header{padding-top:3.5rem}
+.card{box-shadow:0 0.125rem 0.25rem rgba(0,0,0,0.075)}
+.footer{margin-left:250px;padding:.5rem}
+@media (max-width:768px){.main-sidebar{position:relative;width:100%;min-height:auto}.content-wrapper{margin-left:0}.main-header{left:0}}

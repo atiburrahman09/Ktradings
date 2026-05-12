@@ -20,9 +20,13 @@ namespace KTrading.Pages.Products
         public PaginationModel Pager { get; set; } = new();
 
         public IEnumerable<SelectListItem> CategoryList { get; set; } = Array.Empty<SelectListItem>();
+        public Dictionary<Guid, decimal> StockQuantityMap { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
         public Guid? CategoryId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; } = 1;
@@ -46,6 +50,16 @@ namespace KTrading.Pages.Products
                 query = query.Where(p => p.ProductCategoryId == CategoryId.Value);
             }
 
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var search = SearchTerm.Trim();
+                query = query.Where(p =>
+                    (p.Name != null && EF.Functions.Like(p.Name, $"%{search}%")) ||
+                    (p.SKU != null && EF.Functions.Like(p.SKU, $"%{search}%")) ||
+                    (p.Unit != null && EF.Functions.Like(p.Unit, $"%{search}%")) ||
+                    (p.ProductCategory != null && EF.Functions.Like(p.ProductCategory.Name, $"%{search}%")));
+            }
+
             var totalItems = await query.CountAsync();
             Pager = new PaginationModel { PageNumber = PageNumber, PageSize = pageSize, TotalItems = totalItems };
             Products = await query
@@ -53,6 +67,11 @@ namespace KTrading.Pages.Products
                 .Skip((PageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            var productIds = Products.Select(p => p.Id).ToList();
+            StockQuantityMap = await _db.Stocks
+                .Where(s => productIds.Contains(s.ProductId))
+                .ToDictionaryAsync(s => s.ProductId, s => s.Quantity);
         }
     }
 }

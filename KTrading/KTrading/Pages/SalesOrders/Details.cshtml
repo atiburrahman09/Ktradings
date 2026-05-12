@@ -137,7 +137,12 @@
             </table>
         </div>
 
-        <a asp-page="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+        <div class="d-flex gap-2">
+            <a asp-page="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+            <a asp-page="/ProductReturns/Create" asp-route-SalesOrderId="@Model.Order?.Id" class="btn btn-primary">
+                <i class="fas fa-undo-alt"></i> Create Return
+            </a>
+        </div>
     </div>
 </div>
 

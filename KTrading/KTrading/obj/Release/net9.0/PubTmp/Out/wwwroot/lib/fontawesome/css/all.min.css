@@ -1,0 +1,32 @@
+/* Local minimal FontAwesome-like CSS fallback with emoji mappings for common icons used in the app.
+   For full FontAwesome support, replace this file with the official FontAwesome all.min.css and place webfont files under ../webfonts/.
+*/
+
+.fas, .fa { font-style: normal; }
+
+/* Generic mapping of classes used in app to emoji fallbacks */
+.fas.fa-box, .fas.fa-box-open::before { content: "??"; }
+.fas.fa-edit::before { content: "??"; }
+.fas.fa-trash::before { content: "???"; }
+.fas.fa-user::before { content: "??"; }
+.fas.fa-user-circle::before { content: "??"; }
+.fas.fa-sign-out-alt::before { content: "??"; }
+.fas.fa-sign-in-alt::before { content: "??"; }
+.fas.fa-gauge-high::before { content: "??"; }
+.fas.fa-file-invoice-dollar::before { content: "??"; }
+.fas.fa-undo-alt::before { content: "??"; }
+.fas.fa-warehouse::before { content: "??"; }
+.fas.fa-chart-bar::before { content: "??"; }
+.fas.fa-question-circle::before { content: "?"; }
+.fas.fa-save::before { content: "??"; }
+.fas.fa-times::before { content: "??"; }
+.fas.fa-eye::before { content: "???"; }
+.fas.fa-box-open::before { content: "??"; }
+
+/* Basic styling so the pseudo-elements align like icons */
+.fas::before, .fa::before {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  margin-right: .25rem;
+}

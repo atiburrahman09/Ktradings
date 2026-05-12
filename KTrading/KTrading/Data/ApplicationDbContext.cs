@@ -70,6 +70,7 @@ namespace KTrading.Data
             // Product returns
             builder.Entity<ProductReturn>().ToTable("ProductReturns");
             builder.Entity<ProductReturn>().HasKey(r => r.Id);
+            builder.Entity<ProductReturn>().HasIndex(r => r.SalesOrderId);
             builder.Entity<ProductReturnItem>().ToTable("ProductReturnItems");
             builder.Entity<ProductReturnItem>().HasKey(ri => ri.Id);
 

@@ -12,11 +12,16 @@
     <div class="card-body">
         <form method="get" class="row g-2 mb-3">
             <div class="col-md-4">
+                <label asp-for="SearchTerm" class="form-label">Search</label>
+                <input asp-for="SearchTerm" class="form-control" placeholder="Name, SKU, unit, category" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CategoryId" class="form-label">Category</label>
                 <select asp-for="CategoryId" asp-items="Model.CategoryList" class="form-select">
                     <option value="">-- All Categories --</option>
                 </select>
             </div>
-            <div class="col-md-auto">
+            <div class="col-md-auto d-flex align-items-end gap-2">
                 <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filter</button>
                 <a asp-page="Index" class="btn btn-outline-secondary"><i class="fas fa-times"></i> Clear</a>
             </div>
@@ -30,6 +35,7 @@
                         <th>Name</th>
                         <th>Category</th>
                         <th>Unit</th>
+                        <th class="text-end">Stock Qty</th>
                         <th class="text-end">Price</th>
                         <th>Active</th>
                         <th style="width:120px"></th>
@@ -43,6 +49,7 @@
                             <td>@p.Name</td>
                             <td>@(p.ProductCategory?.Name ?? "Uncategorized")</td>
                             <td>@p.Unit</td>
+                            <td class="text-end">@Model.StockQuantityMap.GetValueOrDefault(p.Id).ToString("N2")</td>
                             <td class="text-end">@p.Price.ToString("N2")</td>
                             <td>@(p.IsActive ? "Yes" : "No")</td>
                             <td>

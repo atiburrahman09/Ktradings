@@ -11,50 +11,81 @@
     <form method="post" class="card-body">
         <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-        <div class="mb-3">
-            <label asp-for="Return.ReturnNumber" class="form-label"></label>
-            <input asp-for="Return.ReturnNumber" class="form-control" />
-        </div>
-        <div class="mb-3">
-            <label asp-for="Return.CustomerId" class="form-label">Customer</label>
-            <select asp-for="Return.CustomerId" asp-items="Model.Customers" class="form-select"></select>
-        </div>
-
-        <h5>Items</h5>
-        <div class="table-responsive">
-            <table class="table table-sm" id="returnItemsTable">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Damaged</th>
-                        <th>Notes</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="template d-none">
-                        <td>
-                            <select name="Items[0].ProductId" class="form-select">
-                                <option value="">-- select --</option>
-                                @foreach(var p in Model.ProductsFull)
-                                {
-                                    <option value="@p.Id">@p.Name</option>
-                                }
-                            </select>
-                        </td>
-                        <td><input name="Items[0].Quantity" class="form-control" value="1" /></td>
-                        <td><input type="checkbox" name="Items[0].IsDamaged" class="form-check-input" /></td>
-                        <td><input name="Items[0].Notes" class="form-control" /></td>
-                        <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label asp-for="Return.ReturnNumber" class="form-label"></label>
+                <input asp-for="Return.ReturnNumber" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Return.SalesOrderId" class="form-label">Sales Order</label>
+                <select asp-for="Return.SalesOrderId" asp-items="Model.SalesOrders" class="form-select" id="salesOrderSelect">
+                    <option value="">-- select sales order --</option>
+                </select>
+                <span asp-validation-for="Return.SalesOrderId" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Customer</label>
+                <input class="form-control" value="@(Model.CustomerName ?? "-")" readonly />
+            </div>
         </div>
 
-        <div class="mb-3">
-            <button id="addReturnItem" type="button" class="btn btn-secondary">Add Item</button>
-        </div>
+        @if (Model.SelectedSalesOrder is not null)
+        {
+            <div class="mb-3">
+                <div class="alert alert-info mb-0">
+                    Return is based on sales order <strong>@Model.SelectedSalesOrder.OrderNumber</strong>.
+                    Only products sold in this order can be returned.
+                </div>
+            </div>
+
+            <h5>Sold Items</h5>
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-end">Sold</th>
+                            <th class="text-end">Already Returned</th>
+                            <th class="text-end">Returnable</th>
+                            <th style="width:180px">Return Quantity</th>
+                            <th style="width:120px">Damaged</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var i = 0; i < Model.ReturnLines.Count; i++)
+                    {
+                        var line = Model.ReturnLines[i];
+                        <tr>
+                            <td>
+                                @line.ProductName
+                                <input type="hidden" name="Items[@i].ProductId" value="@line.ProductId" />
+                            </td>
+                            <td class="text-end">@line.SoldQuantity.ToString("N2")</td>
+                            <td class="text-end">@line.ReturnedQuantity.ToString("N2")</td>
+                            <td class="text-end">@line.ReturnableQuantity.ToString("N2")</td>
+                            <td>
+                                <input name="Items[@i].Quantity" class="form-control" type="number" min="0" max="@line.ReturnableQuantity" step="0.01" value="0" @(line.ReturnableQuantity <= 0 ? "readonly" : "") />
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" name="Items[@i].IsDamaged" value="true" class="form-check-input" @(line.ReturnableQuantity <= 0 ? "disabled" : "") />
+                                <input type="hidden" name="Items[@i].IsDamaged" value="false" />
+                            </td>
+                            <td>
+                                <input name="Items[@i].Notes" class="form-control" @(line.ReturnableQuantity <= 0 ? "readonly" : "") />
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-secondary">
+                Select a sales order to load the products available for return.
+            </div>
+        }
 
         <div class="mb-3">
             <label asp-for="Return.Reason" class="form-label"></label>
@@ -62,7 +93,7 @@
         </div>
 
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Create Return</button>
+            <button type="submit" class="btn btn-success" @(Model.SelectedSalesOrder is null ? "disabled" : "")><i class="fas fa-check"></i> Create Return</button>
             <a asp-page="Index" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
         </div>
     </form>
@@ -70,5 +101,11 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/form-rows.js"></script>
+    <script>
+        document.getElementById('salesOrderSelect')?.addEventListener('change', function () {
+            var value = this.value;
+            var url = value ? '@Url.Page("Create")' + '?SalesOrderId=' + encodeURIComponent(value) : '@Url.Page("Create")';
+            window.location.href = url;
+        });
+    </script>
 }

@@ -8,6 +8,7 @@
 
 <div class="mb-3">
     <h4>Return #: @Model.Return?.ReturnNumber</h4>
+    <p>Sales Order: @(Model.SalesOrderNumber ?? "-")</p>
     <p>Customer: @(Model.CustomerName ?? "-")</p>
     <p>Date: @Model.Return?.CreatedAt.ToString("yyyy-MM-dd")</p>
     <p>Status: @Model.Return?.Status</p>
