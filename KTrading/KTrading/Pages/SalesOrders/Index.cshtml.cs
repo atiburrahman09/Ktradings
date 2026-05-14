@@ -222,14 +222,16 @@ namespace KTrading.Pages.SalesOrders
             ws.Cell(summaryRow + 1, 13).Value = order.Commission;
             ws.Cell(summaryRow + 2, 11).Value = "Khajna";
             ws.Cell(summaryRow + 2, 13).Value = order.Khajna;
-            ws.Cell(summaryRow + 3, 11).Value = "Due";
-            ws.Cell(summaryRow + 3, 13).Value = order.DueAmount;
-            ws.Cell(summaryRow + 4, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 4, 13).Value = order.Total - order.Commission - order.Khajna;
-            ws.Range(summaryRow, 11, summaryRow + 4, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            ws.Range(summaryRow, 11, summaryRow + 4, 11).Style.Font.Bold = true;
-            ws.Range(summaryRow, 13, summaryRow + 4, 13).Style.NumberFormat.Format = "0.00";
-            ws.Range(summaryRow + 4, 11, summaryRow + 4, 13).Style.Font.Bold = true;
+            ws.Cell(summaryRow + 3, 11).Value = "DSR Salary";
+            ws.Cell(summaryRow + 3, 13).Value = order.DsrSalary;
+            ws.Cell(summaryRow + 4, 11).Value = "Due";
+            ws.Cell(summaryRow + 4, 13).Value = order.DueAmount;
+            ws.Cell(summaryRow + 5, 11).Value = "Net Total";
+            ws.Cell(summaryRow + 5, 13).Value = order.Total - order.Commission - order.Khajna - order.DsrSalary;
+            ws.Range(summaryRow, 11, summaryRow + 5, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(summaryRow, 11, summaryRow + 5, 11).Style.Font.Bold = true;
+            ws.Range(summaryRow, 13, summaryRow + 5, 13).Style.NumberFormat.Format = "0.00";
+            ws.Range(summaryRow + 5, 11, summaryRow + 5, 13).Style.Font.Bold = true;
 
             var paymentsStartRow = summaryRow + 11;
             ws.Cell(paymentsStartRow, 1).Value = "PAYMENTS";

@@ -49,6 +49,7 @@
                     <th class="text-end">Due</th>
                     <th class="text-end">Commission</th>
                     <th class="text-end">Khajna</th>
+                    <th class="text-end">DSR Salary</th>
                     <th style="width:120px"></th>
                 </tr>
             </thead>
@@ -65,6 +66,7 @@
                     <td class="text-end">@o.DueAmount.ToString("N2")</td>
                     <td class="text-end">@o.Commission.ToString("N2")</td>
                     <td class="text-end">@o.Khajna.ToString("N2")</td>
+                    <td class="text-end">@o.DsrSalary.ToString("N2")</td>
                     <td>
                         <a class="btn btn-sm btn-outline-secondary" asp-page="Details" asp-route-id="@o.Id"><i class="fas fa-eye"></i></a>
                         <a class="btn btn-sm btn-outline-success" asp-page-handler="Print" asp-route-id="@o.Id" title="Download Excel">

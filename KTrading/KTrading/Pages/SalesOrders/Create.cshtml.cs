@@ -26,6 +26,7 @@ namespace KTrading.Pages.SalesOrders
 
         public IEnumerable<SelectListItem> CustomerList { get; set; } = Array.Empty<SelectListItem>();
         public IEnumerable<SelectListItem> SalesOfficerList { get; set; } = Array.Empty<SelectListItem>();
+        public IEnumerable<SelectListItem> ProductCategoryList { get; set; } = Array.Empty<SelectListItem>();
         public List<KTrading.Models.Product> ProductsFull { get; set; } = new();
         public Dictionary<Guid, decimal> ProductStockMap { get; set; } = new();
 
@@ -84,6 +85,7 @@ namespace KTrading.Pages.SalesOrders
             if (SalesOrder.Total < 0) SalesOrder.Total = 0;
             if (SalesOrder.Commission < 0) SalesOrder.Commission = 0;
             SalesOrder.Khajna = 0;
+            SalesOrder.DsrSalary = 0;
             if (SalesOrder.PaidAmount < 0) SalesOrder.PaidAmount = 0;
             SalesOrder.DueAmount = SalesOrder.Total - SalesOrder.PaidAmount;
             if (SalesOrder.DueAmount < 0) SalesOrder.DueAmount = 0;
@@ -164,7 +166,13 @@ namespace KTrading.Pages.SalesOrders
                 .OrderBy(o => o.Name)
                 .Select(o => new SelectListItem(o.Name, o.Id.ToString()))
                 .ToListAsync();
-            ProductsFull = await _db.Products.ToListAsync();
+            ProductCategoryList = await _db.ProductCategories
+                .OrderBy(c => c.Name)
+                .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
+                .ToListAsync();
+            ProductsFull = await _db.Products
+                .OrderBy(p => p.Name)
+                .ToListAsync();
             ProductStockMap = await _db.Stocks.ToDictionaryAsync(s => s.ProductId, s => s.Quantity);
         }
     }

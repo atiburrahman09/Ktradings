@@ -18,15 +18,16 @@
             <div class="col-md-3"><strong>Total:</strong> @Model.Order?.Total.ToString("N2")</div>
             <div class="col-md-3"><strong>Paid:</strong> @Model.Order?.PaidAmount.ToString("N2")</div>
             <div class="col-md-3"><strong>Due:</strong> @Model.Order?.DueAmount.ToString("N2")</div>
-            <div class="col-md-3"><strong>Net:</strong> @((Model.Order?.Total - Model.Order?.Commission - Model.Order?.Khajna)?.ToString("N2"))</div>
+            <div class="col-md-3"><strong>Net:</strong> @((Model.Order?.Total - Model.Order?.Commission - Model.Order?.Khajna - Model.Order?.DsrSalary)?.ToString("N2"))</div>
         </div>
 
         <div class="row mb-3">
             <div class="col-md-3"><strong>Commission:</strong> @Model.Order?.Commission.ToString("N2")</div>
             <div class="col-md-3"><strong>Khajna:</strong> @Model.Order?.Khajna.ToString("N2")</div>
+            <div class="col-md-3"><strong>DSR Salary:</strong> @Model.Order?.DsrSalary.ToString("N2")</div>
         </div>
 
-        <form method="post" asp-page-handler="UpdateKhajna" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-4">
+        <form method="post" asp-page-handler="UpdateKhajna" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-3">
             <div class="col-md-3">
                 <label asp-for="KhajnaAmount" class="form-label">Khajna After Delivery</label>
                 <input asp-for="KhajnaAmount" class="form-control" min="0" step="0.01" />
@@ -34,6 +35,17 @@
             </div>
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Khajna</button>
+            </div>
+        </form>
+
+        <form method="post" asp-page-handler="UpdateDsrSalary" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-4">
+            <div class="col-md-3">
+                <label asp-for="DsrSalaryAmount" class="form-label">DSR Salary</label>
+                <input asp-for="DsrSalaryAmount" class="form-control" min="0" step="0.01" />
+                <span asp-validation-for="DsrSalaryAmount" class="text-danger"></span>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save DSR Salary</button>
             </div>
         </form>
 

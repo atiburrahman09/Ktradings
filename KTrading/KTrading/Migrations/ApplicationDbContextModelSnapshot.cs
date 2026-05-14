@@ -294,6 +294,9 @@ namespace KTrading.Migrations
                     b.Property<decimal>("Discount")
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<decimal>("DsrSalary")
+                        .HasColumnType("decimal(18,4)");
+
                     b.Property<decimal>("DueAmount")
                         .HasColumnType("decimal(18,4)");
 

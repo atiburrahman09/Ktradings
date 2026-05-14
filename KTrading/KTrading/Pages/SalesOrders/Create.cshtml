@@ -4,6 +4,13 @@
     ViewData["Title"] = "Create Sales Order";
 }
 
+@functions {
+    private string CategoryValue(Guid? categoryId)
+    {
+        return categoryId?.ToString() ?? string.Empty;
+    }
+}
+
 <div class="card">
     <div class="card-header">
         <h3 class="card-title"><i class="fas fa-file-invoice-dollar"></i> Create Sales Order</h3>
@@ -38,22 +45,32 @@
             <table class="table table-sm" id="itemsTable">
                 <thead>
                     <tr>
-                        <th style="width:40%">Product</th>
-                        <th style="width:15%">Quantity</th>
-                        <th style="width:15%">Unit Price</th>
-                        <th style="width:15%">Line Total</th>
+                        <th style="width:22%">Category</th>
+                        <th style="width:30%">Product</th>
+                        <th style="width:13%">Quantity</th>
+                        <th style="width:13%">Unit Price</th>
+                        <th style="width:13%">Line Total</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr class="item-row template d-none">
                         <td>
+                            <select class="form-select category-select" disabled>
+                                <option value="">-- all categories --</option>
+                                @foreach (var category in Model.ProductCategoryList)
+                                {
+                                    <option value="@category.Value">@category.Text</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
                             <select name="Items[0].ProductId" class="form-select product-select" disabled>
                                 <option value="">-- select --</option>
                                 @foreach (var p in Model.ProductsFull)
                                 {
                                     var stock = Model.ProductStockMap.GetValueOrDefault(p.Id);
-                                    <option value="@p.Id" data-price="@p.Price" data-stock="@stock">@p.Name (Stock: @stock.ToString("N2"))</option>
+                                    <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" data-price="@p.Price" data-stock="@stock">@p.Name (Stock: @stock.ToString("N2"))</option>
                                 }
                             </select>
                         </td>
@@ -65,7 +82,24 @@
 
                     @for (int i = 0; i < Model.Items?.Count; i++)
                     {
+                        var selectedProduct = Model.ProductsFull.FirstOrDefault(p => p.Id == Model.Items[i].ProductId);
                         <tr class="item-row">
+                            <td>
+                                <select class="form-select category-select">
+                                    <option value="">-- all categories --</option>
+                                    @foreach (var category in Model.ProductCategoryList)
+                                    {
+                                        if (category.Value == selectedProduct?.ProductCategoryId?.ToString())
+                                        {
+                                            <option value="@category.Value" selected>@category.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@category.Value">@category.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
                             <td>
                                 <select name="Items[@i].ProductId" class="form-select product-select">
                                     <option value="">-- select --</option>
@@ -74,10 +108,10 @@
                                         var sel = p.Id.ToString() == Model.Items[i].ProductId.ToString();
                                         var stock = Model.ProductStockMap.GetValueOrDefault(p.Id);
                                         if(sel){
-                                            <text><option value="@p.Id" data-price="@p.Price" data-stock="@stock" selected>@p.Name (Stock: @stock.ToString("N2"))</option></text>
+                                            <text><option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" data-price="@p.Price" data-stock="@stock" selected>@p.Name (Stock: @stock.ToString("N2"))</option></text>
                                         }
                                         else{
-                                            <text><option value="@p.Id" data-price="@p.Price" data-stock="@stock">@p.Name (Stock: @stock.ToString("N2"))</option></text>
+                                            <text><option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" data-price="@p.Price" data-stock="@stock">@p.Name (Stock: @stock.ToString("N2"))</option></text>
                                         }
                                     }
                                 </select>
@@ -130,5 +164,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/form-rows.js"></script>
+    <script src="~/js/form-rows.js" asp-append-version="true"></script>
 }

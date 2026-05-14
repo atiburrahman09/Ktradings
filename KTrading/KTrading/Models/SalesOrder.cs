@@ -21,6 +21,8 @@ namespace KTrading.Models
         public decimal Total { get; set; }
         public decimal Commission { get; set; }
         public decimal Khajna { get; set; }
+        [Display(Name = "DSR Salary")]
+        public decimal DsrSalary { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal DueAmount { get; set; }
 

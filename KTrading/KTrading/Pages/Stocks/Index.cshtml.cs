@@ -19,6 +19,9 @@ namespace KTrading.Pages.Stocks
         public PaginationModel Pager { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
+        public string? SearchTerm { get; set; }
+
+        [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; } = 1;
 
         public async Task OnGetAsync()
@@ -26,10 +29,26 @@ namespace KTrading.Pages.Stocks
             const int pageSize = 10;
             PageNumber = Math.Max(PageNumber, 1);
 
-            var query = _db.Stocks.OrderBy(s => s.ProductId);
+            var query = _db.Stocks.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var search = SearchTerm.Trim();
+                var matchingProductIds = await _db.Products
+                    .Where(p =>
+                        p.Name.Contains(search) ||
+                        (p.SKU != null && p.SKU.Contains(search)) ||
+                        (p.Description != null && p.Description.Contains(search)))
+                    .Select(p => p.Id)
+                    .ToListAsync();
+
+                query = query.Where(s => matchingProductIds.Contains(s.ProductId));
+            }
+
             var totalItems = await query.CountAsync();
             Pager = new PaginationModel { PageNumber = PageNumber, PageSize = pageSize, TotalItems = totalItems };
             Stocks = await query
+                .OrderBy(s => s.ProductId)
                 .Skip((PageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

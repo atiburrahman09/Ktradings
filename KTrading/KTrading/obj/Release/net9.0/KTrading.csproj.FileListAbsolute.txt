@@ -279,5 +279,5 @@ D:\work\Ktradings\KTrading\KTrading\obj\Release\net9.0\KTrading.pdb
 D:\work\Ktradings\KTrading\KTrading\obj\Release\net9.0\KTrading.genruntimeconfig.cache
 D:\work\Ktradings\KTrading\KTrading\obj\Release\net9.0\ref\KTrading.dll
 D:\work\Ktradings\KTrading\KTrading\obj\Release\net9.0\compressed\6fbmbpfalp-18czescgmp.gz
-D:\work\Ktradings\KTrading\KTrading\obj\Release\net9.0\compressed\8vjkjtypfy-p70qms6hor.gz
 D:\work\Ktradings\KTrading\KTrading\obj\Release\net9.0\compressed\apqjma5mwx-kd5bgck1v5.gz
+D:\work\Ktradings\KTrading\KTrading\obj\Release\net9.0\compressed\8vjkjtypfy-75febvmsj5.gz
