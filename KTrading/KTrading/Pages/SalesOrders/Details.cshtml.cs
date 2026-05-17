@@ -40,15 +40,6 @@ namespace KTrading.Pages.SalesOrders
         [BindProperty]
         public string? CollectionReference { get; set; }
 
-        [BindProperty]
-        public Guid DamageProductId { get; set; }
-
-        [BindProperty]
-        public decimal DamageQuantity { get; set; }
-
-        [BindProperty]
-        public string? DamageNote { get; set; }
-
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             var loaded = await LoadOrderAsync(id);
@@ -139,49 +130,6 @@ namespace KTrading.Pages.SalesOrders
             order.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _db.SaveChangesAsync();
-            return RedirectToPage(new { id });
-        }
-
-        public async Task<IActionResult> OnPostRecordDamageAsync(Guid id)
-        {
-            var order = await _db.SalesOrders.FindAsync(id);
-            if (order is null) return NotFound();
-
-            var itemExists = await _db.SalesOrderItems.AnyAsync(i => i.SalesOrderId == id && i.ProductId == DamageProductId);
-            if (!itemExists)
-            {
-                ModelState.AddModelError(nameof(DamageProductId), "Select a product from this order.");
-            }
-
-            if (DamageQuantity <= 0)
-            {
-                ModelState.AddModelError(nameof(DamageQuantity), "Damage quantity must be greater than zero.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                await LoadOrderAsync(id);
-                KhajnaAmount = Order!.Khajna;
-                DsrSalaryAmount = Order.DsrSalary;
-                return Page();
-            }
-
-            _db.StockMovements.Add(new StockMovement
-            {
-                Id = Guid.NewGuid(),
-                ProductId = DamageProductId,
-                Quantity = -DamageQuantity,
-                MovementType = "DAMAGE",
-                ReferenceId = order.Id,
-                Note = string.IsNullOrWhiteSpace(DamageNote)
-                    ? $"Damage against {order.OrderNumber}"
-                    : DamageNote.Trim(),
-                CreatedAt = DateTimeOffset.UtcNow
-            });
-
-            order.UpdatedAt = DateTimeOffset.UtcNow;
-            await _db.SaveChangesAsync();
-
             return RedirectToPage(new { id });
         }
 

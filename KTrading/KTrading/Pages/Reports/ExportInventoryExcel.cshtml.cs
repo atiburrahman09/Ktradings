@@ -43,12 +43,46 @@ namespace KTrading.Pages.Reports
             var salesOrders = (await _db.SalesOrders.ToListAsync())
                 .Where(o => matchingSalesOrderIds.Contains(o.Id))
                 .ToList();
+            var productReturns = (await _db.ProductReturns.ToListAsync())
+                .Where(r => r.SalesOrderId.HasValue && matchingSalesOrderIds.Contains(r.SalesOrderId.Value))
+                .ToList();
+            var productReturnIds = productReturns.Select(r => r.Id).ToHashSet();
+            var returnSalesOrderIds = productReturns.ToDictionary(r => r.Id, r => r.SalesOrderId!.Value);
+            var returnItems = (await _db.ProductReturnItems.ToListAsync())
+                .Where(i => productIds.Contains(i.ProductId) && productReturnIds.Contains(i.ProductReturnId))
+                .ToList();
+            var salesUnitPrices = salesItems
+                .GroupBy(i => new { i.SalesOrderId, i.ProductId })
+                .ToDictionary(
+                    g => (g.Key.SalesOrderId, g.Key.ProductId),
+                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+            var returnAmounts = returnItems
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(i =>
+                    {
+                        var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
+                        var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
+                        return i.Quantity * unitPrice;
+                    }));
+            var returnGroups = returnItems
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        ReturnedQuantity = g.Sum(i => i.Quantity),
+                        DamagedQuantity = g.Where(i => i.IsDamaged).Sum(i => i.Quantity)
+                    });
+            var grandReturnAmount = returnAmounts.Sum(a => a.Value);
 
-            var grandSalesTotal = salesItems.Sum(i => i.LineTotal);
+            var grandSalesTotal = Math.Max(salesItems.Sum(i => i.LineTotal) - grandReturnAmount, 0m);
             var grandCommission = salesOrders.Sum(o => o.Commission);
             var grandKhajna = salesOrders.Sum(o => o.Khajna);
+            var grandDsrSalary = salesOrders.Sum(o => o.DsrSalary);
             var grandDue = salesOrders.Sum(o => o.DueAmount);
-            var grandNetTotal = grandSalesTotal - grandCommission - grandKhajna - grandDue;
+            var grandNetTotal = grandSalesTotal - grandCommission - grandKhajna - grandDsrSalary - grandDue;
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Summary");
@@ -81,9 +115,15 @@ namespace KTrading.Pages.Reports
                 var qty = stock?.Quantity ?? 0m;
                 var ins = movements.Where(m => m.ProductId == p.Id && m.Quantity > 0).Sum(m => m.Quantity);
                 var outs = movements.Where(m => m.ProductId == p.Id && m.Quantity < 0).Sum(m => -m.Quantity);
-                var damage = movements.Where(m => m.ProductId == p.Id && string.Equals(m.MovementType, "DAMAGE", StringComparison.OrdinalIgnoreCase)).Sum(m => m.Quantity);
-                var soldQty = salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.Quantity);
-                var soldAmount = salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.LineTotal);
+                returnGroups.TryGetValue(p.Id, out var returnGroup);
+                var returnedQuantity = returnGroup?.ReturnedQuantity ?? 0m;
+                var damagedReturnQuantity = returnGroup?.DamagedQuantity ?? 0m;
+                var damageMovementQuantity = movements
+                    .Where(m => m.ProductId == p.Id && string.Equals(m.MovementType, "DAMAGE", StringComparison.OrdinalIgnoreCase))
+                    .Sum(m => Math.Abs(m.Quantity));
+                var damage = damagedReturnQuantity + damageMovementQuantity;
+                var soldQty = Math.Max(salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.Quantity) - returnedQuantity, 0m);
+                var soldAmount = Math.Max(salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.LineTotal) - returnAmounts.GetValueOrDefault(p.Id), 0m);
                 var stockValue = qty * p.Cost;
 
                 ws.Cell(row, 1).Value = row - 6; // serial
@@ -130,14 +170,16 @@ namespace KTrading.Pages.Reports
             ws.Cell(summaryRow + 1, 13).Value = grandCommission;
             ws.Cell(summaryRow + 2, 11).Value = "Khajna";
             ws.Cell(summaryRow + 2, 13).Value = grandKhajna;
-            ws.Cell(summaryRow + 3, 11).Value = "Due";
-            ws.Cell(summaryRow + 3, 13).Value = grandDue;
-            ws.Cell(summaryRow + 4, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 4, 13).Value = grandNetTotal;
-            ws.Range(summaryRow, 11, summaryRow + 4, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            ws.Range(summaryRow, 11, summaryRow + 4, 11).Style.Font.Bold = true;
-            ws.Range(summaryRow, 13, summaryRow + 4, 13).Style.NumberFormat.Format = "0.00";
-            ws.Range(summaryRow + 4, 11, summaryRow + 4, 13).Style.Font.Bold = true;
+            ws.Cell(summaryRow + 3, 11).Value = "DSR Salary";
+            ws.Cell(summaryRow + 3, 13).Value = grandDsrSalary;
+            ws.Cell(summaryRow + 4, 11).Value = "Due";
+            ws.Cell(summaryRow + 4, 13).Value = grandDue;
+            ws.Cell(summaryRow + 5, 11).Value = "Net Total";
+            ws.Cell(summaryRow + 5, 13).Value = grandNetTotal;
+            ws.Range(summaryRow, 11, summaryRow + 5, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(summaryRow, 11, summaryRow + 5, 11).Style.Font.Bold = true;
+            ws.Range(summaryRow, 13, summaryRow + 5, 13).Style.NumberFormat.Format = "0.00";
+            ws.Range(summaryRow + 5, 11, summaryRow + 5, 13).Style.Font.Bold = true;
 
             // Auto-fit columns
             ws.Columns().AdjustToContents();

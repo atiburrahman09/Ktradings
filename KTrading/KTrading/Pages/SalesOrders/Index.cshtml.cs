@@ -131,15 +131,36 @@ namespace KTrading.Pages.SalesOrders
             var movements = await _db.StockMovements
                 .Where(m => productIds.Contains(m.ProductId))
                 .ToListAsync();
+            var returnItems = await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == id),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => item)
+                .Where(i => productIds.Contains(i.ProductId))
+                .ToListAsync();
             var itemGroups = items
                 .GroupBy(i => i.ProductId)
                 .Select(g => new
                 {
                     ProductId = g.Key,
                     SoldQuantity = g.Sum(i => i.Quantity),
-                    SoldAmount = g.Sum(i => i.LineTotal)
+                    SoldAmount = g.Sum(i => i.LineTotal),
+                    UnitPrice = g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity)
                 })
                 .ToList();
+            var returnGroups = returnItems
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        ReturnedQuantity = g.Sum(i => i.Quantity),
+                        DamagedQuantity = g.Where(i => i.IsDamaged).Sum(i => i.Quantity)
+                    });
+            var returnedAmountTotal = itemGroups.Sum(i =>
+                returnGroups.GetValueOrDefault(i.ProductId)?.ReturnedQuantity * i.UnitPrice ?? 0m);
+            var reportTotal = Math.Max(order.Total - returnedAmountTotal, 0m);
+            var reportDue = Math.Max(order.DueAmount - returnedAmountTotal, 0m);
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Sales Order");
@@ -177,11 +198,11 @@ namespace KTrading.Pages.SalesOrders
                 var qty = stocks.FirstOrDefault(s => s.ProductId == item.ProductId)?.Quantity ?? 0m;
                 var outs = movements.Where(m => m.ProductId == item.ProductId && m.Quantity < 0).Sum(m => -m.Quantity);
                 var ins = movements.Where(m => m.ProductId == item.ProductId && m.Quantity > 0).Sum(m => m.Quantity);
-                var damage = movements
-                    .Where(m => m.ProductId == item.ProductId
-                        && m.ReferenceId == order.Id
-                        && string.Equals(m.MovementType, "DAMAGE", StringComparison.OrdinalIgnoreCase))
-                    .Sum(m => Math.Abs(m.Quantity));
+                returnGroups.TryGetValue(item.ProductId, out var returnGroup);
+                var returnedQuantity = returnGroup?.ReturnedQuantity ?? 0m;
+                var damage = returnGroup?.DamagedQuantity ?? 0m;
+                var netSoldQuantity = Math.Max(item.SoldQuantity - returnedQuantity, 0m);
+                var netSoldAmount = Math.Max(item.SoldAmount - (returnedQuantity * item.UnitPrice), 0m);
                 var stockValue = qty * (product?.Cost ?? 0m);
 
                 ws.Cell(row, 1).Value = row - 6;
@@ -192,11 +213,11 @@ namespace KTrading.Pages.SalesOrders
                 ws.Cell(row, 6).Value = outs;
                 ws.Cell(row, 7).Value = ins;
                 ws.Cell(row, 8).Value = damage;
-                ws.Cell(row, 9).Value = item.SoldQuantity;
+                ws.Cell(row, 9).Value = netSoldQuantity;
                 ws.Cell(row, 10).Value = product?.Cost ?? 0m;
                 ws.Cell(row, 11).Value = product?.Price ?? 0m;
                 ws.Cell(row, 12).Value = stockValue;
-                ws.Cell(row, 13).Value = item.SoldAmount;
+                ws.Cell(row, 13).Value = netSoldAmount;
                 ws.Range(row, 5, row, 13).Style.NumberFormat.Format = "0.00";
                 row++;
             }
@@ -217,7 +238,7 @@ namespace KTrading.Pages.SalesOrders
 
             var summaryRow = totalRow + 3;
             ws.Cell(summaryRow, 11).Value = "Total";
-            ws.Cell(summaryRow, 13).Value = order.Total;
+            ws.Cell(summaryRow, 13).Value = reportTotal;
             ws.Cell(summaryRow + 1, 11).Value = "Commission";
             ws.Cell(summaryRow + 1, 13).Value = order.Commission;
             ws.Cell(summaryRow + 2, 11).Value = "Khajna";
@@ -225,9 +246,9 @@ namespace KTrading.Pages.SalesOrders
             ws.Cell(summaryRow + 3, 11).Value = "DSR Salary";
             ws.Cell(summaryRow + 3, 13).Value = order.DsrSalary;
             ws.Cell(summaryRow + 4, 11).Value = "Due";
-            ws.Cell(summaryRow + 4, 13).Value = order.DueAmount;
+            ws.Cell(summaryRow + 4, 13).Value = reportDue;
             ws.Cell(summaryRow + 5, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 5, 13).Value = order.Total - order.Commission - order.Khajna - order.DsrSalary;
+            ws.Cell(summaryRow + 5, 13).Value = reportTotal - order.Commission - order.Khajna - order.DsrSalary;
             ws.Range(summaryRow, 11, summaryRow + 5, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             ws.Range(summaryRow, 11, summaryRow + 5, 11).Style.Font.Bold = true;
             ws.Range(summaryRow, 13, summaryRow + 5, 13).Style.NumberFormat.Format = "0.00";

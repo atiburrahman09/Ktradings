@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KTrading")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+813512f0e8cee17d3ecb26190d0b2c835bc0c166")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a47cbb2dd769fb65930751d969e6f2740ededb06")]
 [assembly: System.Reflection.AssemblyProductAttribute("KTrading")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KTrading")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
