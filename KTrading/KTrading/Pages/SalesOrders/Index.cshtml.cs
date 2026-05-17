@@ -347,6 +347,110 @@ namespace KTrading.Pages.SalesOrders
             return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
+        public async Task<IActionResult> OnPostDeleteAsync(
+            Guid id,
+            string? searchTerm,
+            Guid? customerId,
+            Guid? salesOfficerId,
+            DateTime? dateFrom,
+            DateTime? dateTo,
+            int pageNumber = 1)
+        {
+            var order = await _db.SalesOrders.FindAsync(id);
+            if (order is null)
+            {
+                return NotFound();
+            }
+
+            await DeleteSalesOrderAsync(id);
+
+            return RedirectToPage(new
+            {
+                searchTerm,
+                customerId,
+                salesOfficerId,
+                dateFrom = dateFrom?.ToString("yyyy-MM-dd"),
+                dateTo = dateTo?.ToString("yyyy-MM-dd"),
+                pageNumber
+            });
+        }
+
+        private async Task DeleteSalesOrderAsync(Guid salesOrderId)
+        {
+            var returns = await _db.ProductReturns
+                .Where(r => r.SalesOrderId == salesOrderId)
+                .ToListAsync();
+            var returnIds = returns.Select(r => r.Id).ToHashSet();
+
+            var salesOrderMovements = await _db.StockMovements
+                .Where(m => m.ReferenceId == salesOrderId)
+                .ToListAsync();
+            var returnMovements = returnIds.Any()
+                ? await _db.StockMovements
+                    .Where(m => m.ReferenceId.HasValue && returnIds.Contains(m.ReferenceId.Value))
+                    .ToListAsync()
+                : new List<StockMovement>();
+
+            foreach (var movement in salesOrderMovements.Concat(returnMovements)
+                .Where(m => !string.Equals(m.MovementType, "DAMAGE", StringComparison.OrdinalIgnoreCase)))
+            {
+                await ApplyStockDeltaAsync(movement.ProductId, -movement.Quantity);
+            }
+
+            _db.StockMovements.RemoveRange(salesOrderMovements);
+            _db.StockMovements.RemoveRange(returnMovements);
+
+            if (returnIds.Any())
+            {
+                var returnItems = await _db.ProductReturnItems
+                    .Where(i => returnIds.Contains(i.ProductReturnId))
+                    .ToListAsync();
+                _db.ProductReturnItems.RemoveRange(returnItems);
+                _db.ProductReturns.RemoveRange(returns);
+            }
+
+            var payments = await _db.Payments
+                .Where(p => p.SalesOrderId == salesOrderId)
+                .ToListAsync();
+            var items = await _db.SalesOrderItems
+                .Where(i => i.SalesOrderId == salesOrderId)
+                .ToListAsync();
+            var order = await _db.SalesOrders.FindAsync(salesOrderId);
+
+            _db.Payments.RemoveRange(payments);
+            _db.SalesOrderItems.RemoveRange(items);
+            if (order is not null)
+            {
+                _db.SalesOrders.Remove(order);
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
+        private async Task ApplyStockDeltaAsync(Guid productId, decimal quantityDelta)
+        {
+            if (quantityDelta == 0m)
+            {
+                return;
+            }
+
+            var stock = await _db.Stocks.FirstOrDefaultAsync(s => s.ProductId == productId);
+            if (stock is null)
+            {
+                stock = new Stock
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = productId,
+                    Quantity = 0m,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                };
+                _db.Stocks.Add(stock);
+            }
+
+            stock.Quantity += quantityDelta;
+            stock.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
         private static Expression<Func<SalesOrder, bool>> BuildSalesOrderSearchPredicate(string search, IEnumerable<Guid> matchingCustomerIds)
         {
             var order = Expression.Parameter(typeof(SalesOrder), "o");

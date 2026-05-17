@@ -60,7 +60,7 @@ public class SalesOrderReturnAdjustmentTests
         Assert.Equal(50m, page.ReturnedAmount);
         Assert.Equal(10m, page.AdjustedTotal);
         var displayItem = Assert.Single(page.DisplayItems);
-        Assert.Equal(3m, displayItem.Quantity);
+        Assert.Equal(1m, displayItem.Quantity);
         Assert.Equal(10m, displayItem.LineTotal);
     }
 

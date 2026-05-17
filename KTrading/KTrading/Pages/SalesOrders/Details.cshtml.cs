@@ -152,7 +152,6 @@ namespace KTrading.Pages.SalesOrders
                 SalesOfficer = await _db.SalesOfficers.FindAsync(Order.SalesOfficerId.Value);
             }
             Items = await _db.SalesOrderItems.Where(i => i.SalesOrderId == id).ToListAsync();
-            var returnedQuantityByProduct = await GetReturnedQuantitiesAsync(id);
             var salesAdjustmentQuantityByProduct = await GetSalesAdjustmentQuantitiesAsync(id);
             DisplayItems = Items
                 .GroupBy(i => i.ProductId)
@@ -161,13 +160,12 @@ namespace KTrading.Pages.SalesOrders
                     var soldQuantity = g.Sum(i => i.Quantity);
                     var soldAmount = g.Sum(i => i.LineTotal);
                     var unitPrice = soldQuantity == 0 ? 0 : soldAmount / soldQuantity;
-                    var returnedQuantity = returnedQuantityByProduct.GetValueOrDefault(g.Key);
                     var salesAdjustmentQuantity = salesAdjustmentQuantityByProduct.GetValueOrDefault(g.Key);
 
                     return new SalesOrderItemDisplay
                     {
                         ProductId = g.Key,
-                        Quantity = Math.Max(soldQuantity - returnedQuantity, 0m),
+                        Quantity = Math.Max(soldQuantity - salesAdjustmentQuantity, 0m),
                         UnitPrice = unitPrice,
                         LineTotal = Math.Max(soldAmount - (salesAdjustmentQuantity * unitPrice), 0m)
                     };

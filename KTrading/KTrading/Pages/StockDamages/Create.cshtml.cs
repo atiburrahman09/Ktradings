@@ -47,14 +47,6 @@ namespace KTrading.Pages.StockDamages
             }
 
             var now = DateTimeOffset.UtcNow;
-            if (stock is null)
-            {
-                stock = new Stock { Id = Guid.NewGuid(), ProductId = Input.ProductId, Quantity = 0, UpdatedAt = now };
-                _db.Stocks.Add(stock);
-            }
-
-            stock.Quantity -= Input.Quantity;
-            stock.UpdatedAt = now;
 
             _db.StockMovements.Add(new StockMovement
             {
@@ -62,7 +54,7 @@ namespace KTrading.Pages.StockDamages
                 ProductId = Input.ProductId,
                 Quantity = -Input.Quantity,
                 MovementType = "DAMAGE",
-                ReferenceId = stock.Id,
+                ReferenceId = stock?.Id,
                 Note = string.IsNullOrWhiteSpace(Input.Note) ? "Stock damage" : Input.Note.Trim(),
                 CreatedAt = now
             });

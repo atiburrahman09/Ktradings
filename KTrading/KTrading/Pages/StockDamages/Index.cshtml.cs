@@ -1,10 +1,13 @@
 using KTrading.Data;
 using KTrading.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace KTrading.Pages.StockDamages
 {
+    [Authorize(Policy = "RequireAdminOrSales")]
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _db;
@@ -28,16 +31,20 @@ namespace KTrading.Pages.StockDamages
             SearchTerm = searchTerm;
             PageNumber = Math.Max(pageNumber, 1);
 
-            var damageMovements = await _db.StockMovements
+            var damageMovementRows = await _db.StockMovements
                 .Where(m => m.MovementType == "DAMAGE" && m.Quantity < 0)
+                .ToListAsync();
+            var damageMovements = damageMovementRows
                 .Select(m => new DamageListItem
                 {
+                    Id = m.Id,
                     CreatedAt = m.CreatedAt,
                     ProductId = m.ProductId,
                     Quantity = Math.Abs(m.Quantity),
-                    Note = m.Note
+                    Note = m.Note,
+                    Source = DamageSource.Movement
                 })
-                .ToListAsync();
+                .ToList();
 
             var movementReturnDamageKeys = await _db.StockMovements
                 .Where(m => m.MovementType == "DAMAGE" && m.Quantity < 0 && m.ReferenceId.HasValue)
@@ -69,12 +76,14 @@ namespace KTrading.Pages.StockDamages
                 .Where(i => !movementReturnDamageKeySet.Contains((i.Id, i.ProductId)))
                 .Select(i => new DamageListItem
                 {
+                    Id = i.Id,
                     CreatedAt = i.CreatedAt,
                     ProductId = i.ProductId,
                     Quantity = i.DamagedQuantity > 0 ? i.DamagedQuantity : i.Quantity,
                     Note = string.IsNullOrWhiteSpace(i.Notes)
                         ? $"Damaged return {i.ReturnNumber}"
-                        : $"{i.Notes} ({i.ReturnNumber})"
+                        : $"{i.Notes} ({i.ReturnNumber})",
+                    Source = DamageSource.ReturnItem
                 })
                 .Where(i => i.Quantity > 0)
                 .ToList();
@@ -111,12 +120,58 @@ namespace KTrading.Pages.StockDamages
             ProductSkus = products.ToDictionary(p => p.Id, p => p.SKU);
         }
 
+        public async Task<IActionResult> OnPostDeleteAsync(Guid id, string? source, string? searchTerm, int pageNumber = 1)
+        {
+            if (string.Equals(source, DamageSource.ReturnItem, StringComparison.OrdinalIgnoreCase))
+            {
+                var item = await _db.ProductReturnItems.FindAsync(id);
+                if (item is null)
+                {
+                    return NotFound();
+                }
+
+                if (item.Quantity <= 0m)
+                {
+                    _db.ProductReturnItems.Remove(item);
+                }
+                else
+                {
+                    item.DamagedQuantity = 0m;
+                    item.IsDamaged = false;
+                }
+
+                await _db.SaveChangesAsync();
+                return RedirectToPage(new { searchTerm, pageNumber });
+            }
+
+            var movement = await _db.StockMovements
+                .FirstOrDefaultAsync(m => m.Id == id && m.MovementType == "DAMAGE" && m.Quantity < 0);
+            if (movement is null)
+            {
+                return NotFound();
+            }
+
+            _db.StockMovements.Remove(movement);
+
+            await _db.SaveChangesAsync();
+
+            return RedirectToPage(new { searchTerm, pageNumber });
+        }
+
         public class DamageListItem
         {
+            public Guid? Id { get; set; }
             public DateTimeOffset CreatedAt { get; set; }
             public Guid ProductId { get; set; }
             public decimal Quantity { get; set; }
             public string? Note { get; set; }
+            public string Source { get; set; } = DamageSource.Movement;
+        }
+
+        public static class DamageSource
+        {
+            public const string Movement = "movement";
+            public const string ReturnItem = "returnItem";
         }
     }
 }

@@ -131,6 +131,11 @@
             <a asp-page="/ProductReturns/Create" asp-route-SalesOrderId="@Model.Order?.Id" class="btn btn-primary">
                 <i class="fas fa-undo-alt"></i> Create Return
             </a>
+            <form method="post" asp-page="Index" asp-page-handler="Delete" asp-route-id="@Model.Order?.Id" class="d-inline" onsubmit="return confirm('Delete this sales order and roll back its stock, returns, and payments?');">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </form>
         </div>
     </div>
 </div>

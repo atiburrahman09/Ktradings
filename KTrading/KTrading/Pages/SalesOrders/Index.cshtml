@@ -50,7 +50,7 @@
                     <th class="text-end">Commission</th>
                     <th class="text-end">Khajna</th>
                     <th class="text-end">DSR Salary</th>
-                    <th style="width:120px"></th>
+                    <th style="width:160px"></th>
                 </tr>
             </thead>
             <tbody>
@@ -75,6 +75,11 @@
                         <a class="btn btn-sm btn-outline-success" asp-page-handler="Print" asp-route-id="@o.Id" title="Download Excel">
                             <i class="fas fa-print"></i>
                         </a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@o.Id" asp-route-searchTerm="@Model.SearchTerm" asp-route-customerId="@Model.CustomerId" asp-route-salesOfficerId="@Model.SalesOfficerId" asp-route-dateFrom="@Model.DateFrom?.ToString("yyyy-MM-dd")" asp-route-dateTo="@Model.DateTo?.ToString("yyyy-MM-dd")" asp-route-pageNumber="@Model.PageNumber" class="d-inline" onsubmit="return confirm('Delete this sales order and roll back its stock, returns, and payments?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
             }

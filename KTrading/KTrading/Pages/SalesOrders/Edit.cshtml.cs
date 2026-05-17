@@ -197,7 +197,6 @@ namespace KTrading.Pages.SalesOrders
                     var soldQuantity = g.Sum(i => i.Quantity);
                     var soldAmount = g.Sum(i => i.LineTotal);
                     var unitPrice = soldQuantity == 0 ? 0 : soldAmount / soldQuantity;
-                    var returnedQuantity = ReturnedQuantityByProduct.GetValueOrDefault(g.Key);
                     var salesAdjustmentQuantity = SalesAdjustmentQuantityByProduct.GetValueOrDefault(g.Key);
 
                     return new SalesOrderItem
@@ -205,7 +204,7 @@ namespace KTrading.Pages.SalesOrders
                         Id = g.First().Id,
                         SalesOrderId = g.First().SalesOrderId,
                         ProductId = g.Key,
-                        Quantity = Math.Max(soldQuantity - returnedQuantity, 0m),
+                        Quantity = Math.Max(soldQuantity - salesAdjustmentQuantity, 0m),
                         UnitPrice = unitPrice,
                         LineTotal = Math.Max(soldAmount - (salesAdjustmentQuantity * unitPrice), 0m)
                     };
@@ -216,7 +215,7 @@ namespace KTrading.Pages.SalesOrders
 
         private async Task ConvertPostedNetItemsToGrossAsync(Guid salesOrderId)
         {
-            var returnedByProduct = await GetReturnedQuantitiesAsync(salesOrderId);
+            var returnedByProduct = await GetSalesAdjustmentQuantitiesAsync(salesOrderId);
 
             foreach (var item in Items)
             {

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KTrading.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f8252e26e598af460a4c68732e97807c2707f697")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8f52e4c9a6a8fc4d621ca0f25251e03940bd4b37")]
 [assembly: System.Reflection.AssemblyProductAttribute("KTrading.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KTrading.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

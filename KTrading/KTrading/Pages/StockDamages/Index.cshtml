@@ -29,6 +29,7 @@
                         <th>SKU</th>
                         <th class="text-end">Damage Qty</th>
                         <th>Note</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -40,6 +41,16 @@
                         <td>@Model.ProductSkus.GetValueOrDefault(damage.ProductId)</td>
                         <td class="text-end">@Math.Abs(damage.Quantity).ToString("N2")</td>
                         <td>@damage.Note</td>
+                        <td class="text-end">
+                            @if (damage.Id.HasValue)
+                            {
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@damage.Id" asp-route-source="@damage.Source" asp-route-searchTerm="@Model.SearchTerm" asp-route-pageNumber="@Model.PageNumber" class="d-inline" onsubmit="return confirm('Delete this damage row?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
                     </tr>
                 }
                 </tbody>
