@@ -1,0 +1,50 @@
+@page
+@model KTrading.Pages.StockDamages.IndexModel
+@{
+    ViewData["Title"] = "Damage Stock";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title"><i class="fas fa-triangle-exclamation"></i> Damage Stock</h3>
+        <a class="btn btn-warning" asp-page="Create"><i class="fas fa-plus-circle"></i> Record Damage</a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-4">
+                <input name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search product, SKU, or note" />
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-secondary"><i class="fas fa-search"></i> Search</button>
+                <a asp-page="Index" class="btn btn-outline-secondary"><i class="fas fa-times"></i> Clear</a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th class="text-end">Damage Qty</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var damage in Model.Damages)
+                {
+                    <tr>
+                        <td>@damage.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@Model.ProductNames.GetValueOrDefault(damage.ProductId, damage.ProductId.ToString())</td>
+                        <td>@Model.ProductSkus.GetValueOrDefault(damage.ProductId)</td>
+                        <td class="text-end">@Math.Abs(damage.Quantity).ToString("N2")</td>
+                        <td>@damage.Note</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_Pagination" model="Model.Pager" />
+    </div>
+</div>

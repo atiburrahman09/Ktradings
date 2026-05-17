@@ -6,6 +6,7 @@ namespace KTrading.Models
         public Guid ProductReturnId { get; set; }
         public Guid ProductId { get; set; }
         public decimal Quantity { get; set; }
+        public decimal DamagedQuantity { get; set; }
         public bool IsDamaged { get; set; }
         public string? Notes { get; set; }
     }

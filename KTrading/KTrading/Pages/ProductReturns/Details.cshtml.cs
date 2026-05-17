@@ -43,19 +43,29 @@ namespace KTrading.Pages.ProductReturns
 
         public async Task<IActionResult> OnPostProcessAsync(Guid id)
         {
-            // Process return: for each item, if damaged -> create stock movement DAMAGE (no restock)
-            // otherwise create stock movement RETURN (increase stock)
+            var ret = await _db.ProductReturns.FindAsync(id);
+            if (ret is null) return NotFound();
+            if (ret.Status == "Processed")
+            {
+                return RedirectToPage("Details", new { id });
+            }
+
+            // Damaged returned quantity reduces sales but is not restocked.
             var items = await _db.ProductReturnItems.Where(i => i.ProductReturnId == id).ToListAsync();
             foreach(var it in items)
             {
-                if (it.IsDamaged)
+                var damagedQuantity = GetDamagedQuantity(it);
+                var restockQuantity = Math.Max(it.Quantity - damagedQuantity, 0m);
+
+                if (damagedQuantity > 0)
                 {
                     var sm = new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = 0, MovementType = "DAMAGE", ReferenceId = id, Note = it.Notes, CreatedAt = DateTimeOffset.UtcNow };
                     _db.StockMovements.Add(sm);
                 }
-                else
+
+                if (restockQuantity > 0)
                 {
-                    var sm = new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = it.Quantity, MovementType = "RETURN", ReferenceId = id, Note = it.Notes, CreatedAt = DateTimeOffset.UtcNow };
+                    var sm = new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = restockQuantity, MovementType = "RETURN", ReferenceId = id, Note = it.Notes, CreatedAt = DateTimeOffset.UtcNow };
                     _db.StockMovements.Add(sm);
 
                     var stock = await _db.Stocks.FirstOrDefaultAsync(s => s.ProductId == it.ProductId);
@@ -64,18 +74,20 @@ namespace KTrading.Pages.ProductReturns
                         stock = new Stock { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = 0, UpdatedAt = DateTimeOffset.UtcNow };
                         _db.Stocks.Add(stock);
                     }
-                    stock.Quantity += it.Quantity;
+                    stock.Quantity += restockQuantity;
                     stock.UpdatedAt = DateTimeOffset.UtcNow;
                 }
             }
 
-            var ret = await _db.ProductReturns.FindAsync(id);
-            if(ret != null){
-                ret.Status = "Processed";
-            }
+            ret.Status = "Processed";
 
             await _db.SaveChangesAsync();
             return RedirectToPage("Details", new { id = id });
+        }
+
+        public static decimal GetDamagedQuantity(ProductReturnItem item)
+        {
+            return item.DamagedQuantity > 0 ? item.DamagedQuantity : item.IsDamaged ? item.Quantity : 0m;
         }
     }
 }

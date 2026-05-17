@@ -314,6 +314,7 @@ BEGIN
         [ProductReturnId] uniqueidentifier NOT NULL,
         [ProductId] uniqueidentifier NOT NULL,
         [Quantity] decimal(18,2) NOT NULL,
+        [DamagedQuantity] decimal(18,2) NOT NULL DEFAULT 0.0,
         [IsDamaged] bit NOT NULL,
         [Notes] nvarchar(max) NULL,
         CONSTRAINT [PK_ProductReturnItems] PRIMARY KEY ([Id]),
@@ -410,6 +411,42 @@ IF NOT EXISTS (
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
     VALUES (N'20260426085016_InitialAll', N'8.0.13');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260517090000_AddProductReturnDamagedQuantity'
+)
+BEGIN
+    ALTER TABLE [ProductReturnItems] ADD [DamagedQuantity] decimal(18,2) NOT NULL DEFAULT 0.0;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260517090000_AddProductReturnDamagedQuantity'
+)
+BEGIN
+    UPDATE [ProductReturnItems]
+    SET [DamagedQuantity] = [Quantity]
+    WHERE [IsDamaged] = 1 AND [DamagedQuantity] = 0;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260517090000_AddProductReturnDamagedQuantity'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260517090000_AddProductReturnDamagedQuantity', N'8.0.13');
 END;
 GO
 

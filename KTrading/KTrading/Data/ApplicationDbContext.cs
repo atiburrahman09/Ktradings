@@ -97,6 +97,7 @@ namespace KTrading.Data
 
             builder.Entity<Payment>().Property(p => p.Amount).HasColumnType("decimal(18,4)");
             builder.Entity<ProductReturnItem>().Property(ri => ri.Quantity).HasColumnType("decimal(18,2)");
+            builder.Entity<ProductReturnItem>().Property(ri => ri.DamagedQuantity).HasColumnType("decimal(18,2)");
             builder.Entity<Stock>().Property(s => s.Quantity).HasColumnType("decimal(18,4)");
             builder.Entity<StockMovement>().Property(sm => sm.Quantity).HasColumnType("decimal(18,4)");
         }

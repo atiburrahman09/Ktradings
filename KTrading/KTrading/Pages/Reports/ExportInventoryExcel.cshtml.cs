@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using KTrading.Data;
+using KTrading.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
@@ -73,7 +74,7 @@ namespace KTrading.Pages.Reports
                     g => new
                     {
                         ReturnedQuantity = g.Sum(i => i.Quantity),
-                        DamagedQuantity = g.Where(i => i.IsDamaged).Sum(i => i.Quantity)
+                        DamagedQuantity = g.Sum(GetDamagedReturnQuantity)
                     });
             var grandReturnAmount = returnAmounts.Sum(a => a.Value);
 
@@ -191,6 +192,11 @@ namespace KTrading.Pages.Reports
             var reportName = string.IsNullOrWhiteSpace(categoryName) ? "Inventory" : categoryName.Replace(" ", "_");
             var fileName = $"{reportName}_Summary_{DateTime.UtcNow:yyyyMMdd}.xlsx";
             return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        private static decimal GetDamagedReturnQuantity(ProductReturnItem item)
+        {
+            return item.DamagedQuantity > 0 ? item.DamagedQuantity : item.IsDamaged ? item.Quantity : 0m;
         }
     }
 }

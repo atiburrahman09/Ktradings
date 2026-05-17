@@ -20,10 +20,15 @@ namespace KTrading.Pages.SalesOrders
         public Customer? Customer { get; set; }
         public SalesOfficer? SalesOfficer { get; set; }
         public List<SalesOrderItem> Items { get; set; } = new();
+        public List<SalesOrderItemDisplay> DisplayItems { get; set; } = new();
         public List<Payment> Payments { get; set; } = new();
         public Dictionary<Guid, string> ProductNames { get; set; } = new();
         public Dictionary<int, string> PaymentMethodNames { get; set; } = new();
         public IEnumerable<SelectListItem> PaymentMethodList { get; set; } = Array.Empty<SelectListItem>();
+        public decimal ReturnedAmount { get; set; }
+        public decimal AdjustedTotal => Math.Max((Order?.Total ?? 0m) - ReturnedAmount, 0m);
+        public decimal AdjustedDue => Math.Max((Order?.DueAmount ?? 0m) - ReturnedAmount, 0m);
+        public decimal AdjustedNet => AdjustedTotal - (Order?.Commission ?? 0m) - (Order?.Khajna ?? 0m) - (Order?.DsrSalary ?? 0m);
 
         [BindProperty]
         public decimal KhajnaAmount { get; set; }
@@ -99,7 +104,10 @@ namespace KTrading.Pages.SalesOrders
                 ModelState.AddModelError(nameof(CollectionAmount), "Collection amount must be greater than zero.");
             }
 
-            if (CollectionAmount > order.DueAmount)
+            var returnedAmount = await CalculateReturnedAmountAsync(id);
+            var adjustedDue = Math.Max(order.DueAmount - returnedAmount, 0m);
+
+            if (CollectionAmount > adjustedDue)
             {
                 ModelState.AddModelError(nameof(CollectionAmount), "Collection amount cannot be greater than the due amount.");
             }
@@ -144,6 +152,26 @@ namespace KTrading.Pages.SalesOrders
                 SalesOfficer = await _db.SalesOfficers.FindAsync(Order.SalesOfficerId.Value);
             }
             Items = await _db.SalesOrderItems.Where(i => i.SalesOrderId == id).ToListAsync();
+            var returnedQuantityByProduct = await GetReturnedQuantitiesAsync(id);
+            DisplayItems = Items
+                .GroupBy(i => i.ProductId)
+                .Select(g =>
+                {
+                    var soldQuantity = g.Sum(i => i.Quantity);
+                    var soldAmount = g.Sum(i => i.LineTotal);
+                    var unitPrice = soldQuantity == 0 ? 0 : soldAmount / soldQuantity;
+                    var returnedQuantity = returnedQuantityByProduct.GetValueOrDefault(g.Key);
+
+                    return new SalesOrderItemDisplay
+                    {
+                        ProductId = g.Key,
+                        Quantity = Math.Max(soldQuantity - returnedQuantity, 0m),
+                        UnitPrice = unitPrice,
+                        LineTotal = Math.Max(soldAmount - (returnedQuantity * unitPrice), 0m)
+                    };
+                })
+                .OrderBy(i => i.ProductId)
+                .ToList();
             Payments = await _db.Payments.Where(p => p.SalesOrderId == id).OrderBy(p => p.PaymentDate).ToListAsync();
             PaymentMethodNames = await _db.PaymentMethods.ToDictionaryAsync(m => m.Id, m => m.Name);
             PaymentMethodList = PaymentMethodNames.Select(m => new SelectListItem(m.Value, m.Key.ToString())).ToList();
@@ -153,8 +181,49 @@ namespace KTrading.Pages.SalesOrders
             ProductNames = products
                 .Where(p => itemProductIds.Contains(p.Id))
                 .ToDictionary(p => p.Id, p => p.Name);
+            ReturnedAmount = await CalculateReturnedAmountAsync(id);
 
             return true;
+        }
+
+        private async Task<decimal> CalculateReturnedAmountAsync(Guid salesOrderId)
+        {
+            var salesItems = await _db.SalesOrderItems
+                .Where(i => i.SalesOrderId == salesOrderId)
+                .ToListAsync();
+            var unitPrices = salesItems
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+            var returnItems = await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == salesOrderId),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => item)
+                .ToListAsync();
+
+            return returnItems.Sum(i => i.Quantity * unitPrices.GetValueOrDefault(i.ProductId));
+        }
+
+        private async Task<Dictionary<Guid, decimal>> GetReturnedQuantitiesAsync(Guid salesOrderId)
+        {
+            return await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == salesOrderId),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => item)
+                .GroupBy(i => i.ProductId)
+                .Select(g => new { ProductId = g.Key, Quantity = g.Sum(i => i.Quantity) })
+                .ToDictionaryAsync(x => x.ProductId, x => x.Quantity);
+        }
+
+        public class SalesOrderItemDisplay
+        {
+            public Guid ProductId { get; set; }
+            public decimal Quantity { get; set; }
+            public decimal UnitPrice { get; set; }
+            public decimal LineTotal { get; set; }
         }
     }
 }

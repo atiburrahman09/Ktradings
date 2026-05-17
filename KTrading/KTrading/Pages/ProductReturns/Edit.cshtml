@@ -1,26 +1,31 @@
-@page
-@model KTrading.Pages.ProductReturns.CreateModel
+@page "{id:guid}"
+@model KTrading.Pages.ProductReturns.EditModel
 @{
-    ViewData["Title"] = "Create Product Return";
+    ViewData["Title"] = "Edit Product Return";
 }
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><i class="fas fa-undo-alt"></i> Create Product Return</h3>
+        <h3 class="card-title"><i class="fas fa-edit"></i> Edit Product Return</h3>
     </div>
     <form method="post" class="card-body">
+        <input type="hidden" asp-for="Return.Id" />
         <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
         <div class="row mb-3">
             <div class="col-md-4">
                 <label asp-for="Return.ReturnNumber" class="form-label"></label>
-                <input asp-for="Return.ReturnNumber" class="form-control" />
+                <input asp-for="Return.ReturnNumber" class="form-control" readonly="@(Model.Return.Status == "Processed" ? "readonly" : null)" />
             </div>
             <div class="col-md-4">
                 <label asp-for="Return.SalesOrderId" class="form-label">Sales Order</label>
-                <select asp-for="Return.SalesOrderId" asp-items="Model.SalesOrders" class="form-select" id="salesOrderSelect">
+                <select asp-for="Return.SalesOrderId" asp-items="Model.SalesOrders" class="form-select" id="salesOrderSelect" disabled="@(Model.Return.Status == "Processed" ? "disabled" : null)">
                     <option value="">-- select sales order --</option>
                 </select>
+                @if (Model.Return.Status == "Processed")
+                {
+                    <input type="hidden" asp-for="Return.SalesOrderId" />
+                }
                 <span asp-validation-for="Return.SalesOrderId" class="text-danger"></span>
             </div>
             <div class="col-md-4">
@@ -34,7 +39,7 @@
             <div class="mb-3">
                 <div class="alert alert-info mb-0">
                     Return is based on sales order <strong>@Model.SelectedSalesOrder.OrderNumber</strong>.
-                    Only products sold in this order can be returned.
+                    Current return quantities are included in the editable maximum.
                 </div>
             </div>
 
@@ -46,7 +51,7 @@
                             <th>Product</th>
                             <th class="text-end">Sold</th>
                             <th class="text-end">Already Returned</th>
-                            <th class="text-end">Returnable</th>
+                            <th class="text-end">Available</th>
                             <th style="width:170px">Return Quantity</th>
                             <th style="width:170px">Damage Quantity</th>
                             <th>Notes</th>
@@ -56,6 +61,7 @@
                     @for (var i = 0; i < Model.ReturnLines.Count; i++)
                     {
                         var line = Model.ReturnLines[i];
+                        var disabled = Model.Return.Status == "Processed";
                         <tr>
                             <td>
                                 @line.ProductName
@@ -63,15 +69,15 @@
                             </td>
                             <td class="text-end">@line.SoldQuantity.ToString("N2")</td>
                             <td class="text-end">@line.ReturnedQuantity.ToString("N2")</td>
-                            <td class="text-end">@line.ReturnableQuantity.ToString("N2")</td>
+                            <td class="text-end">@line.MaxQuantity.ToString("N2")</td>
                             <td>
-                                <input name="Items[@i].Quantity" class="form-control" type="number" min="0" max="@line.ReturnableQuantity" step="0.01" value="0" @(line.ReturnableQuantity <= 0 ? "readonly" : "") />
+                                <input name="Items[@i].Quantity" class="form-control" type="number" min="0" max="@line.MaxQuantity" step="0.01" value="@line.Quantity" @(disabled || line.MaxQuantity <= 0 ? "readonly" : "") />
                             </td>
                             <td>
-                                <input name="Items[@i].DamagedQuantity" class="form-control" type="number" min="0" max="@line.ReturnableQuantity" step="0.01" value="0" @(line.ReturnableQuantity <= 0 ? "readonly" : "") />
+                                <input name="Items[@i].DamagedQuantity" class="form-control" type="number" min="0" max="@line.MaxQuantity" step="0.01" value="@line.DamagedQuantity" @(disabled || line.MaxQuantity <= 0 ? "readonly" : "") />
                             </td>
                             <td>
-                                <input name="Items[@i].Notes" class="form-control" @(line.ReturnableQuantity <= 0 ? "readonly" : "") />
+                                <input name="Items[@i].Notes" class="form-control" value="@line.Notes" @(disabled || line.MaxQuantity <= 0 ? "readonly" : "") />
                             </td>
                         </tr>
                     }
@@ -79,21 +85,18 @@
                 </table>
             </div>
         }
-        else
-        {
-            <div class="alert alert-secondary">
-                Select a sales order to load the products available for return.
-            </div>
-        }
 
         <div class="mb-3">
             <label asp-for="Return.Reason" class="form-label"></label>
-            <textarea asp-for="Return.Reason" class="form-control"></textarea>
+            <textarea asp-for="Return.Reason" class="form-control" readonly="@(Model.Return.Status == "Processed" ? "readonly" : null)"></textarea>
         </div>
 
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success" @(Model.SelectedSalesOrder is null ? "disabled" : "")><i class="fas fa-check"></i> Create Return</button>
-            <a asp-page="Index" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+            @if (Model.Return.Status != "Processed")
+            {
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save</button>
+            }
+            <a asp-page="Details" asp-route-id="@Model.Return.Id" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
         </div>
     </form>
 </div>
@@ -103,7 +106,7 @@
     <script>
         document.getElementById('salesOrderSelect')?.addEventListener('change', function () {
             var value = this.value;
-            var url = value ? '@Url.Page("Create")' + '?SalesOrderId=' + encodeURIComponent(value) : '@Url.Page("Create")';
+            var url = value ? '@Url.Page("Edit", new { id = Model.Return.Id })' + '?salesOrderId=' + encodeURIComponent(value) : '@Url.Page("Edit", new { id = Model.Return.Id })';
             window.location.href = url;
         });
     </script>

@@ -15,10 +15,10 @@
         <p>Date: @Model.Order?.OrderDate.ToString("yyyy-MM-dd")</p>
 
         <div class="row mb-3">
-            <div class="col-md-3"><strong>Total:</strong> @Model.Order?.Total.ToString("N2")</div>
+            <div class="col-md-3"><strong>Total:</strong> @Model.AdjustedTotal.ToString("N2")</div>
             <div class="col-md-3"><strong>Paid:</strong> @Model.Order?.PaidAmount.ToString("N2")</div>
-            <div class="col-md-3"><strong>Due:</strong> @Model.Order?.DueAmount.ToString("N2")</div>
-            <div class="col-md-3"><strong>Net:</strong> @((Model.Order?.Total - Model.Order?.Commission - Model.Order?.Khajna - Model.Order?.DsrSalary)?.ToString("N2"))</div>
+            <div class="col-md-3"><strong>Due:</strong> @Model.AdjustedDue.ToString("N2")</div>
+            <div class="col-md-3"><strong>Net:</strong> @Model.AdjustedNet.ToString("N2")</div>
         </div>
 
         <div class="row mb-3">
@@ -49,12 +49,12 @@
             </div>
         </form>
 
-        @if ((Model.Order?.DueAmount ?? 0) > 0)
+        @if (Model.AdjustedDue > 0)
         {
             <form method="post" asp-page-handler="CollectDue" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-4">
                 <div class="col-md-3">
                     <label asp-for="CollectionAmount" class="form-label">Due Collection</label>
-                    <input asp-for="CollectionAmount" class="form-control" min="0.01" max="@Model.Order?.DueAmount" step="0.01" />
+                    <input asp-for="CollectionAmount" class="form-control" min="0.01" max="@Model.AdjustedDue" step="0.01" />
                     <span asp-validation-for="CollectionAmount" class="text-danger"></span>
                 </div>
                 <div class="col-md-3">
@@ -85,7 +85,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (var item in Model.Items)
+                @foreach (var item in Model.DisplayItems)
                 {
                     <tr>
                         <td>@(Model.ProductNames.TryGetValue(item.ProductId, out var productName) ? productName : item.ProductId)</td>
@@ -125,6 +125,9 @@
 
         <div class="d-flex gap-2">
             <a asp-page="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+            <a asp-page="Edit" asp-route-id="@Model.Order?.Id" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
             <a asp-page="/ProductReturns/Create" asp-route-SalesOrderId="@Model.Order?.Id" class="btn btn-primary">
                 <i class="fas fa-undo-alt"></i> Create Return
             </a>

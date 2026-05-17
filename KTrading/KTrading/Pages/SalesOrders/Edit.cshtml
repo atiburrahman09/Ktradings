@@ -1,0 +1,177 @@
+@page "{id:guid}"
+@model KTrading.Pages.SalesOrders.EditModel
+@{
+    ViewData["Title"] = "Edit Sales Order";
+}
+
+@functions {
+    private string CategoryValue(Guid? categoryId)
+    {
+        return categoryId?.ToString() ?? string.Empty;
+    }
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-edit"></i> Edit Sales Order</h3>
+    </div>
+    <form method="post" class="card-body">
+        <input type="hidden" asp-for="SalesOrder.Id" />
+        <input type="hidden" id="returnAdjustment" value="@Model.ReturnedAmount" />
+        <input type="hidden" id="salesOrderNetQuantityMode" value="true" />
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.OrderNumber" class="form-label"></label>
+                <input asp-for="SalesOrder.OrderNumber" class="form-control" />
+                <span asp-validation-for="SalesOrder.OrderNumber" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.CustomerId" class="form-label">Customer</label>
+                <select asp-for="SalesOrder.CustomerId" asp-items="Model.CustomerList" class="form-select"></select>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.SalesOfficerId" class="form-label">Sales Officer</label>
+                <select asp-for="SalesOrder.SalesOfficerId" asp-items="Model.SalesOfficerList" class="form-select">
+                    <option value="">-- select --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.OrderDate" class="form-label"></label>
+                <input asp-for="SalesOrder.OrderDate" type="date" value="@Model.SalesOrder.OrderDate.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+        </div>
+
+        <h5>Items</h5>
+        <div class="table-responsive">
+            <table class="table table-sm" id="itemsTable">
+                <thead>
+                    <tr>
+                        <th style="width:22%">Category</th>
+                        <th style="width:30%">Product</th>
+                        <th style="width:13%">Quantity</th>
+                        <th style="width:13%">Unit Price</th>
+                        <th style="width:13%">Line Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="item-row template d-none">
+                        <td>
+                            <select class="form-select category-select" disabled>
+                                <option value="">-- all categories --</option>
+                                @foreach (var category in Model.ProductCategoryList)
+                                {
+                                    <option value="@category.Value">@category.Text</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <select name="Items[0].ProductId" class="form-select product-select" disabled>
+                                <option value="">-- select --</option>
+                                @foreach (var p in Model.ProductsFull)
+                                {
+                                    var stock = Model.ProductStockMap.GetValueOrDefault(p.Id);
+                                    var returned = Model.ReturnedQuantityByProduct.GetValueOrDefault(p.Id);
+                                    <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" data-price="@p.Price" data-stock="@stock" data-returned="@returned">@p.Name (Available: @stock.ToString("N2"))</option>
+                                }
+                            </select>
+                        </td>
+                        <td><input name="Items[0].Quantity" class="form-control qty" value="1" disabled /></td>
+                        <td><input name="Items[0].UnitPrice" class="form-control unitprice" disabled /></td>
+                        <td><input name="Items[0].LineTotal" class="form-control linetotal" readonly disabled /></td>
+                        <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
+                    </tr>
+
+                    @for (var i = 0; i < Model.Items.Count; i++)
+                    {
+                        var selectedProduct = Model.ProductsFull.FirstOrDefault(p => p.Id == Model.Items[i].ProductId);
+                        <tr class="item-row">
+                            <td>
+                                <select class="form-select category-select">
+                                    <option value="">-- all categories --</option>
+                                    @foreach (var category in Model.ProductCategoryList)
+                                    {
+                                        if (category.Value == selectedProduct?.ProductCategoryId?.ToString())
+                                        {
+                                            <option value="@category.Value" selected>@category.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@category.Value">@category.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="Items[@i].ProductId" class="form-select product-select">
+                                    <option value="">-- select --</option>
+                                    @foreach (var p in Model.ProductsFull)
+                                    {
+                                        var selected = p.Id == Model.Items[i].ProductId;
+                                        var stock = Model.ProductStockMap.GetValueOrDefault(p.Id);
+                                        if (selected)
+                                        {
+                                            var returned = Model.ReturnedQuantityByProduct.GetValueOrDefault(p.Id);
+                                            <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" data-price="@p.Price" data-stock="@stock" data-returned="@returned" selected>@p.Name (Available: @stock.ToString("N2"))</option>
+                                        }
+                                        else
+                                        {
+                                            var returned = Model.ReturnedQuantityByProduct.GetValueOrDefault(p.Id);
+                                            <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" data-price="@p.Price" data-stock="@stock" data-returned="@returned">@p.Name (Available: @stock.ToString("N2"))</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td><input name="Items[@i].Quantity" class="form-control qty" value="@Model.Items[i].Quantity" /></td>
+                            <td><input name="Items[@i].UnitPrice" class="form-control unitprice" value="@Model.Items[i].UnitPrice" /></td>
+                            <td><input name="Items[@i].LineTotal" class="form-control linetotal" readonly value="@Model.Items[i].LineTotal" /></td>
+                            <td><button type="button" class="btn btn-sm btn-danger remove-row">Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mb-3">
+            <button id="addItem" type="button" class="btn btn-secondary">Add Item</button>
+        </div>
+
+        <div class="mb-3 text-end">
+            <div><label class="me-3">Returned Amount: </label><span>@Model.ReturnedAmount.ToString("N2")</span></div>
+            <label class="me-3">Subtotal: </label><span id="subtotal">0.00</span>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.Commission" class="form-label"></label>
+                <input asp-for="SalesOrder.Commission" class="form-control money-input" min="0" step="0.01" />
+                <span asp-validation-for="SalesOrder.Commission" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SalesOrder.PaidAmount" class="form-label">Paid Amount</label>
+                <input asp-for="SalesOrder.PaidAmount" class="form-control money-input" min="0" step="0.01" />
+                <span asp-validation-for="SalesOrder.PaidAmount" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Due Amount</label>
+                <input id="dueAmount" class="form-control" readonly value="0.00" />
+            </div>
+        </div>
+
+        <div class="mb-3 text-end">
+            <label class="me-3">Net After Commission: </label><span id="netAfterExpenses">0.00</span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save</button>
+            <a asp-page="Details" asp-route-id="@Model.SalesOrder.Id" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/form-rows.js" asp-append-version="true"></script>
+}

@@ -32,6 +32,10 @@
                     <td>@r.Status</td>
                     <td>
                         <a class="btn btn-sm btn-outline-secondary" asp-page="Details" asp-route-id="@r.Id"><i class="fas fa-eye"></i></a>
+                        @if (r.Status != "Processed")
+                        {
+                            <a class="btn btn-sm btn-outline-primary" asp-page="Edit" asp-route-id="@r.Id"><i class="fas fa-edit"></i></a>
+                        }
                     </td>
                 </tr>
             }

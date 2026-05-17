@@ -21,6 +21,8 @@ namespace KTrading.Pages.SalesOrders
         public IEnumerable<SalesOrder> Orders { get; set; } = Array.Empty<SalesOrder>();
         public Dictionary<Guid, string> CustomerNames { get; set; } = new();
         public Dictionary<Guid, string> SalesOfficerNames { get; set; } = new();
+        public Dictionary<Guid, decimal> AdjustedTotals { get; set; } = new();
+        public Dictionary<Guid, decimal> AdjustedDues { get; set; } = new();
         public IEnumerable<SelectListItem> CustomerList { get; set; } = Array.Empty<SelectListItem>();
         public IEnumerable<SelectListItem> SalesOfficerList { get; set; } = Array.Empty<SelectListItem>();
         public PaginationModel Pager { get; set; } = new();
@@ -96,11 +98,66 @@ namespace KTrading.Pages.SalesOrders
 
             var totalItems = await query.CountAsync();
             Pager = new PaginationModel { PageNumber = PageNumber, PageSize = pageSize, TotalItems = totalItems };
-            Orders = await query
+            var orders = await query
                 .OrderByDescending(o => o.OrderDate)
                 .Skip((PageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+            Orders = orders;
+
+            await LoadAdjustedOrderAmountsAsync(orders);
+        }
+
+        private async Task LoadAdjustedOrderAmountsAsync(IReadOnlyCollection<SalesOrder> orders)
+        {
+            var orderIds = orders.Select(o => o.Id).ToHashSet();
+            AdjustedTotals = orders.ToDictionary(o => o.Id, o => o.Total);
+            AdjustedDues = orders.ToDictionary(o => o.Id, o => o.DueAmount);
+
+            if (!orderIds.Any())
+            {
+                return;
+            }
+
+            var salesItems = await _db.SalesOrderItems
+                .Where(i => orderIds.Contains(i.SalesOrderId))
+                .ToListAsync();
+            var productReturns = await _db.ProductReturns
+                .Where(r => r.SalesOrderId.HasValue && orderIds.Contains(r.SalesOrderId.Value))
+                .ToListAsync();
+            var productReturnIds = productReturns.Select(r => r.Id).ToHashSet();
+
+            if (!productReturnIds.Any())
+            {
+                return;
+            }
+
+            var returnSalesOrderIds = productReturns.ToDictionary(r => r.Id, r => r.SalesOrderId!.Value);
+            var returnItems = await _db.ProductReturnItems
+                .Where(i => productReturnIds.Contains(i.ProductReturnId))
+                .ToListAsync();
+            var salesUnitPrices = salesItems
+                .GroupBy(i => new { i.SalesOrderId, i.ProductId })
+                .ToDictionary(
+                    g => (g.Key.SalesOrderId, g.Key.ProductId),
+                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+            var returnedAmounts = returnItems
+                .GroupBy(i => returnSalesOrderIds[i.ProductReturnId])
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(i =>
+                    {
+                        var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
+                        var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
+                        return i.Quantity * unitPrice;
+                    }));
+
+            foreach (var order in orders)
+            {
+                var returnedAmount = returnedAmounts.GetValueOrDefault(order.Id);
+                AdjustedTotals[order.Id] = Math.Max(order.Total - returnedAmount, 0m);
+                AdjustedDues[order.Id] = Math.Max(order.DueAmount - returnedAmount, 0m);
+            }
         }
 
         public async Task<IActionResult> OnGetPrintAsync(Guid id)
@@ -155,7 +212,7 @@ namespace KTrading.Pages.SalesOrders
                     g => new
                     {
                         ReturnedQuantity = g.Sum(i => i.Quantity),
-                        DamagedQuantity = g.Where(i => i.IsDamaged).Sum(i => i.Quantity)
+                        DamagedQuantity = g.Sum(GetDamagedReturnQuantity)
                     });
             var returnedAmountTotal = itemGroups.Sum(i =>
                 returnGroups.GetValueOrDefault(i.ProductId)?.ReturnedQuantity * i.UnitPrice ?? 0m);
@@ -304,6 +361,11 @@ namespace KTrading.Pages.SalesOrders
             }
 
             return Expression.Lambda<Func<SalesOrder, bool>>(body, order);
+        }
+
+        private static decimal GetDamagedReturnQuantity(ProductReturnItem item)
+        {
+            return item.DamagedQuantity > 0 ? item.DamagedQuantity : item.IsDamaged ? item.Quantity : 0m;
         }
     }
 }

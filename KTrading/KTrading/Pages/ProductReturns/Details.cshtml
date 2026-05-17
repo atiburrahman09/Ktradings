@@ -18,8 +18,9 @@
     <thead>
         <tr>
             <th>Product</th>
-            <th>Quantity</th>
-            <th>Damaged</th>
+            <th class="text-end">Return Quantity</th>
+            <th class="text-end">Damage Quantity</th>
+            <th class="text-end">Restock Quantity</th>
             <th>Notes</th>
         </tr>
     </thead>
@@ -28,8 +29,9 @@
     {
         <tr>
             <td>@(Model.ProductMap.ContainsKey(it.ProductId) ? Model.ProductMap[it.ProductId] : it.ProductId.ToString())</td>
-            <td>@it.Quantity</td>
-            <td>@(it.IsDamaged ? "Yes" : "No")</td>
+            <td class="text-end">@it.Quantity.ToString("N2")</td>
+            <td class="text-end">@KTrading.Pages.ProductReturns.DetailsModel.GetDamagedQuantity(it).ToString("N2")</td>
+            <td class="text-end">@Math.Max(it.Quantity - KTrading.Pages.ProductReturns.DetailsModel.GetDamagedQuantity(it), 0m).ToString("N2")</td>
             <td>@it.Notes</td>
         </tr>
     }
@@ -41,6 +43,7 @@
 
     @if (Model.Return?.Status != "Processed")
     {
+        <a asp-page="Edit" asp-route-id="@Model.Return?.Id" class="btn btn-primary">Edit</a>
         <form method="post" asp-page-handler="Process" class="d-inline">
             <input type="hidden" name="id" value="@Model.Return?.Id" />
             <button type="submit" class="btn btn-warning" onclick="return confirm('Process this return and update stock?');">Process Return</button>

@@ -224,8 +224,8 @@ namespace KTrading.Data
                     await context.ProductReturns.AddRangeAsync(open, proc);
                     _ = await context.SaveChangesAsync();
 
-                    var openItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = open.Id, ProductId = orderItem.ProductId, Quantity = 1, IsDamaged = false, Notes = "Customer changed mind" };
-                    var procItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = proc.Id, ProductId = orderItem.ProductId, Quantity = 1, IsDamaged = true, Notes = "Expired" };
+                    var openItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = open.Id, ProductId = orderItem.ProductId, Quantity = 1, DamagedQuantity = 0, IsDamaged = false, Notes = "Customer changed mind" };
+                    var procItem = new ProductReturnItem { Id = Guid.NewGuid(), ProductReturnId = proc.Id, ProductId = orderItem.ProductId, Quantity = 1, DamagedQuantity = 1, IsDamaged = true, Notes = "Expired" };
                     await context.ProductReturnItems.AddRangeAsync(openItem, procItem);
 
                     // Processed return: add stock movement of type DAMAGE for damaged and RETURN for undamaged

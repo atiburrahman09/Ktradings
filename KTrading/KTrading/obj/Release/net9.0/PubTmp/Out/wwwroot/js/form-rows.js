@@ -61,7 +61,8 @@
                 text: option.text,
                 category: normalizeKey(option.dataset.category),
                 price: option.dataset.price || '',
-                stock: option.dataset.stock || ''
+                stock: option.dataset.stock || '',
+                returned: option.dataset.returned || ''
             };
         });
         console.log('[SalesOrder] Product options cache:', productOptions);
@@ -169,6 +170,7 @@
                 option.dataset.category = source.category;
                 option.dataset.price = source.price;
                 option.dataset.stock = source.stock;
+                option.dataset.returned = source.returned;
                 productSelect.appendChild(option);
             });
 
@@ -230,10 +232,24 @@
         var commissionInput = document.getElementById('SalesOrder_Commission');
         var paid = parseFloat(paidInput && paidInput.value) || 0;
         var commission = parseFloat(commissionInput && commissionInput.value) || 0;
+        var returnAdjustmentInput = document.getElementById('returnAdjustment');
+        var netQuantityModeInput = document.getElementById('salesOrderNetQuantityMode');
+        var netQuantityMode = netQuantityModeInput && netQuantityModeInput.value === 'true';
+        var returned = parseFloat(returnAdjustmentInput && returnAdjustmentInput.value) || 0;
+        var dynamicReturned = 0;
+        rows.forEach(function(r){
+            var select = r.querySelector('.product-select');
+            var option = select && select.options[select.selectedIndex];
+            var returnedQty = parseFloat(option && option.dataset.returned) || 0;
+            var unitPrice = parseFloat(r.querySelector('.unitprice').value) || 0;
+            dynamicReturned += returnedQty * unitPrice;
+        });
+        if(netQuantityMode) returned = 0;
+        else if(dynamicReturned > 0) returned = dynamicReturned;
         var dueEl = document.getElementById('dueAmount');
         var netEl = document.getElementById('netAfterExpenses');
-        if(dueEl) dueEl.value = Math.max(subtotal - paid, 0).toFixed(2);
-        if(netEl) netEl.textContent = (subtotal - commission).toFixed(2);
+        if(dueEl) dueEl.value = Math.max(subtotal - returned - paid, 0).toFixed(2);
+        if(netEl) netEl.textContent = (subtotal - returned - commission).toFixed(2);
     }
 
     document.addEventListener('DOMContentLoaded', function(){

@@ -225,6 +225,9 @@ namespace KTrading.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal>("DamagedQuantity")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("IsDamaged")
                         .HasColumnType("bit");
 
