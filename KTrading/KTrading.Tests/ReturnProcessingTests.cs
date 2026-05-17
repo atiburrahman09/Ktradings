@@ -45,12 +45,14 @@ public class ReturnProcessingTests
         var updatedReturn = await db.ProductReturns.FindAsync(ret.Id);
 
         // asserts
-        // Should have one RETURN (for undamaged) and one DAMAGE (for damaged)
-        Assert.Contains(movements, m => m.MovementType == "RETURN");
-        Assert.Contains(movements, m => m.MovementType == "DAMAGE");
+        // Should restock all returned quantity. Damaged quantity is only an amount/reporting marker
+        // through ProductReturnItem, and does not create a separate stock movement.
+        Assert.Contains(movements, m => m.MovementType == "RETURN" && m.Quantity == 2m);
+        Assert.Contains(movements, m => m.MovementType == "RETURN" && m.Quantity == 1m);
+        Assert.DoesNotContain(movements, m => m.MovementType == "DAMAGE");
 
-        // Stock increased by the undamaged quantity (2)
-        Assert.Equal(7m, updatedStock.Quantity);
+        // Stock increased by the full returned quantity (2 + 1)
+        Assert.Equal(8m, updatedStock.Quantity);
 
         // Return status should be Processed
         Assert.Equal("Processed", updatedReturn.Status);

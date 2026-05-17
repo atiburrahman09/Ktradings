@@ -65,7 +65,7 @@ namespace KTrading.Pages.Reports
                     {
                         var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
                         var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
-                        return i.Quantity * unitPrice;
+                        return GetSalesAdjustmentQuantity(i) * unitPrice;
                     }));
             var returnGroups = returnItems
                 .GroupBy(i => i.ProductId)
@@ -192,6 +192,11 @@ namespace KTrading.Pages.Reports
             var reportName = string.IsNullOrWhiteSpace(categoryName) ? "Inventory" : categoryName.Replace(" ", "_");
             var fileName = $"{reportName}_Summary_{DateTime.UtcNow:yyyyMMdd}.xlsx";
             return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
+        {
+            return item.Quantity + Math.Max(item.DamagedQuantity, 0m);
         }
 
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)

@@ -3495,6 +3495,7 @@
       "path": "microsoft.netcore.targets/1.1.0",
       "files": [
         ".nupkg.metadata",
+        ".signature.p7s",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
         "lib/netstandard1.0/_._",
@@ -4105,7 +4106,6 @@
       "path": "system.runtime/4.3.0",
       "files": [
         ".nupkg.metadata",
-        ".signature.p7s",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
         "lib/MonoAndroid10/_._",
@@ -4488,7 +4488,6 @@
       "path": "system.text.encoding/4.3.0",
       "files": [
         ".nupkg.metadata",
-        ".signature.p7s",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
         "lib/MonoAndroid10/_._",
@@ -4738,25 +4737,25 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\atibur.ASABD\\.nuget\\packages\\": {},
+    "C:\\Users\\atibur\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\work\\Ktradings\\KTrading\\KTrading\\KTrading.csproj",
+      "projectUniqueName": "D:\\Ktradings\\KTrading\\KTrading\\KTrading.csproj",
       "projectName": "KTrading",
-      "projectPath": "D:\\work\\Ktradings\\KTrading\\KTrading\\KTrading.csproj",
-      "packagesPath": "C:\\Users\\atibur.ASABD\\.nuget\\packages\\",
-      "outputPath": "D:\\work\\Ktradings\\KTrading\\KTrading\\obj\\",
+      "projectPath": "D:\\Ktradings\\KTrading\\KTrading\\KTrading.csproj",
+      "packagesPath": "C:\\Users\\atibur\\.nuget\\packages\\",
+      "outputPath": "D:\\Ktradings\\KTrading\\KTrading\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\atibur.ASABD\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\atibur\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4765,7 +4764,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {

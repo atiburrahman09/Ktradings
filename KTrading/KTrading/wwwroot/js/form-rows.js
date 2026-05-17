@@ -142,6 +142,7 @@
             var productSelect = row.querySelector('.product-select');
             if(!categorySelect || !productSelect) return;
 
+            syncCategoryFromSelectedProduct(row);
             var selectedCategory = normalizeKey(categorySelect.value);
             var currentValue = resetProduct ? '' : productSelect.value;
             productSelect.innerHTML = '';
@@ -195,11 +196,26 @@
 
         function filterAllProductRows(){
             tbody.querySelectorAll('tr:not(.template)').forEach(function(row){
+                syncCategoryFromSelectedProduct(row);
                 filterProductsForRow(row, false);
             });
         }
 
         filterAllProductRows();
+    }
+
+    function syncCategoryFromSelectedProduct(row){
+        var categorySelect = row.querySelector('.category-select');
+        var productSelect = row.querySelector('.product-select');
+        if(!categorySelect || !productSelect || categorySelect.value) return;
+
+        var option = productSelect.options[productSelect.selectedIndex];
+        var category = option && option.dataset.category;
+        if(category && Array.prototype.some.call(categorySelect.options, function(source){
+            return normalizeKey(source.value) === normalizeKey(category);
+        })){
+            categorySelect.value = category;
+        }
     }
 
     function normalizeKey(value){
@@ -248,7 +264,14 @@
         else if(dynamicReturned > 0) returned = dynamicReturned;
         var dueEl = document.getElementById('dueAmount');
         var netEl = document.getElementById('netAfterExpenses');
-        if(dueEl) dueEl.value = Math.max(subtotal - returned - paid, 0).toFixed(2);
+        var dueInputModeInput = document.getElementById('salesOrderDueInputMode');
+        var dueInputMode = dueInputModeInput && dueInputModeInput.value === 'true';
+        if(dueInputMode && dueEl && paidInput){
+            var due = parseFloat(dueEl.value) || 0;
+            paidInput.value = Math.max(subtotal - returned - due, 0).toFixed(2);
+        } else if(dueEl) {
+            dueEl.value = Math.max(subtotal - returned - paid, 0).toFixed(2);
+        }
         if(netEl) netEl.textContent = (subtotal - returned - commission).toFixed(2);
     }
 

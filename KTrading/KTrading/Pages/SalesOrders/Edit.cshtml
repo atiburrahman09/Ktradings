@@ -19,6 +19,7 @@
         <input type="hidden" asp-for="SalesOrder.Id" />
         <input type="hidden" id="returnAdjustment" value="@Model.ReturnedAmount" />
         <input type="hidden" id="salesOrderNetQuantityMode" value="true" />
+        <input type="hidden" id="salesOrderDueInputMode" value="true" />
         <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
         <div class="row mb-3">
@@ -93,9 +94,13 @@
                                     <option value="">-- all categories --</option>
                                     @foreach (var category in Model.ProductCategoryList)
                                     {
-                                        if (category.Value == selectedProduct?.ProductCategoryId?.ToString())
+                                        var isSelectedCategory = string.Equals(
+                                            category.Value,
+                                            selectedProduct?.ProductCategoryId?.ToString(),
+                                            StringComparison.OrdinalIgnoreCase);
+                                        if (isSelectedCategory)
                                         {
-                                            <option value="@category.Value" selected>@category.Text</option>
+                                            <option value="@category.Value" selected="selected">@category.Text</option>
                                         }
                                         else
                                         {
@@ -151,12 +156,13 @@
             </div>
             <div class="col-md-3">
                 <label asp-for="SalesOrder.PaidAmount" class="form-label">Paid Amount</label>
-                <input asp-for="SalesOrder.PaidAmount" class="form-control money-input" min="0" step="0.01" />
+                <input asp-for="SalesOrder.PaidAmount" class="form-control money-input" min="0" step="0.01" readonly />
                 <span asp-validation-for="SalesOrder.PaidAmount" class="text-danger"></span>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Due Amount</label>
-                <input id="dueAmount" class="form-control" readonly value="0.00" />
+                <label asp-for="DueAmountInput" class="form-label">Due Amount</label>
+                <input asp-for="DueAmountInput" id="dueAmount" class="form-control money-input" min="0" step="0.01" />
+                <span asp-validation-for="DueAmountInput" class="text-danger"></span>
             </div>
         </div>
 

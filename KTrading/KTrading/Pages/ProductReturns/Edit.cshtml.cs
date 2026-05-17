@@ -87,21 +87,15 @@ namespace KTrading.Pages.ProductReturns
                 var allowed = allowedByProduct.GetValueOrDefault(itemGroup.Key);
                 var requested = itemGroup.Sum(i => i.Quantity);
                 var damaged = itemGroup.Sum(i => i.DamagedQuantity);
+                var salesAdjustmentQuantity = requested + damaged;
 
-                if (damaged > requested)
-                {
-                    var damagedProduct = await _db.Products.FindAsync(itemGroup.Key);
-                    ModelState.AddModelError(nameof(Items), $"{damagedProduct?.Name ?? "Selected product"} damaged quantity cannot be greater than return quantity.");
-                    continue;
-                }
-
-                if (requested <= allowed)
+                if (salesAdjustmentQuantity <= allowed)
                 {
                     continue;
                 }
 
                 var product = await _db.Products.FindAsync(itemGroup.Key);
-                ModelState.AddModelError(nameof(Items), $"{product?.Name ?? "Selected product"} can return only {allowed:N2} from this sales order.");
+                ModelState.AddModelError(nameof(Items), $"{product?.Name ?? "Selected product"} can adjust only {allowed:N2} more from this sales order.");
             }
 
             if (!ModelState.IsValid) return Page();
@@ -230,14 +224,21 @@ namespace KTrading.Pages.ProductReturns
 
         private async Task<Dictionary<Guid, decimal>> GetReturnedQuantitiesAsync(Guid salesOrderId, Guid currentReturnId)
         {
-            return await _db.ProductReturnItems
+            var returnItems = await _db.ProductReturnItems
                 .Join(_db.ProductReturns.Where(r => r.SalesOrderId == salesOrderId && r.Id != currentReturnId),
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .ToListAsync();
+
+            return returnItems
                 .GroupBy(i => i.ProductId)
-                .Select(g => new { ProductId = g.Key, Quantity = g.Sum(i => i.Quantity) })
-                .ToDictionaryAsync(x => x.ProductId, x => x.Quantity);
+                .ToDictionary(g => g.Key, g => g.Sum(GetSalesAdjustmentQuantity));
+        }
+
+        private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
+        {
+            return item.Quantity + Math.Max(item.DamagedQuantity, 0m);
         }
 
         public class ReturnLineInput

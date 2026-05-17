@@ -112,7 +112,7 @@ namespace KTrading.Pages.SalesOrders
         {
             var orderIds = orders.Select(o => o.Id).ToHashSet();
             AdjustedTotals = orders.ToDictionary(o => o.Id, o => o.Total);
-            AdjustedDues = orders.ToDictionary(o => o.Id, o => o.DueAmount);
+            AdjustedDues = orders.ToDictionary(o => o.Id, o => Math.Max(o.Total - o.PaidAmount, 0m));
 
             if (!orderIds.Any())
             {
@@ -149,14 +149,14 @@ namespace KTrading.Pages.SalesOrders
                     {
                         var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
                         var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
-                        return i.Quantity * unitPrice;
+                        return GetSalesAdjustmentQuantity(i) * unitPrice;
                     }));
 
             foreach (var order in orders)
             {
                 var returnedAmount = returnedAmounts.GetValueOrDefault(order.Id);
                 AdjustedTotals[order.Id] = Math.Max(order.Total - returnedAmount, 0m);
-                AdjustedDues[order.Id] = Math.Max(order.DueAmount - returnedAmount, 0m);
+                AdjustedDues[order.Id] = Math.Max(AdjustedTotals[order.Id] - order.PaidAmount, 0m);
             }
         }
 
@@ -212,12 +212,13 @@ namespace KTrading.Pages.SalesOrders
                     g => new
                     {
                         ReturnedQuantity = g.Sum(i => i.Quantity),
+                        SalesAdjustmentQuantity = g.Sum(GetSalesAdjustmentQuantity),
                         DamagedQuantity = g.Sum(GetDamagedReturnQuantity)
                     });
             var returnedAmountTotal = itemGroups.Sum(i =>
-                returnGroups.GetValueOrDefault(i.ProductId)?.ReturnedQuantity * i.UnitPrice ?? 0m);
+                returnGroups.GetValueOrDefault(i.ProductId)?.SalesAdjustmentQuantity * i.UnitPrice ?? 0m);
             var reportTotal = Math.Max(order.Total - returnedAmountTotal, 0m);
-            var reportDue = Math.Max(order.DueAmount - returnedAmountTotal, 0m);
+            var reportDue = Math.Max(reportTotal - order.PaidAmount, 0m);
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Sales Order");
@@ -257,9 +258,10 @@ namespace KTrading.Pages.SalesOrders
                 var ins = movements.Where(m => m.ProductId == item.ProductId && m.Quantity > 0).Sum(m => m.Quantity);
                 returnGroups.TryGetValue(item.ProductId, out var returnGroup);
                 var returnedQuantity = returnGroup?.ReturnedQuantity ?? 0m;
+                var salesAdjustmentQuantity = returnGroup?.SalesAdjustmentQuantity ?? 0m;
                 var damage = returnGroup?.DamagedQuantity ?? 0m;
                 var netSoldQuantity = Math.Max(item.SoldQuantity - returnedQuantity, 0m);
-                var netSoldAmount = Math.Max(item.SoldAmount - (returnedQuantity * item.UnitPrice), 0m);
+                var netSoldAmount = Math.Max(item.SoldAmount - (salesAdjustmentQuantity * item.UnitPrice), 0m);
                 var stockValue = qty * (product?.Cost ?? 0m);
 
                 ws.Cell(row, 1).Value = row - 6;
@@ -361,6 +363,11 @@ namespace KTrading.Pages.SalesOrders
             }
 
             return Expression.Lambda<Func<SalesOrder, bool>>(body, order);
+        }
+
+        private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
+        {
+            return item.Quantity + Math.Max(item.DamagedQuantity, 0m);
         }
 
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)

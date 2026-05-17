@@ -50,18 +50,12 @@ namespace KTrading.Pages.ProductReturns
                 return RedirectToPage("Details", new { id });
             }
 
-            // Damaged returned quantity reduces sales but is not restocked.
+            // Returned quantity always goes back to stock. Damaged quantity is only used for
+            // sales-order amount/reporting adjustments and does not change stock separately.
             var items = await _db.ProductReturnItems.Where(i => i.ProductReturnId == id).ToListAsync();
             foreach(var it in items)
             {
-                var damagedQuantity = GetDamagedQuantity(it);
-                var restockQuantity = Math.Max(it.Quantity - damagedQuantity, 0m);
-
-                if (damagedQuantity > 0)
-                {
-                    var sm = new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = 0, MovementType = "DAMAGE", ReferenceId = id, Note = it.Notes, CreatedAt = DateTimeOffset.UtcNow };
-                    _db.StockMovements.Add(sm);
-                }
+                var restockQuantity = Math.Max(it.Quantity, 0m);
 
                 if (restockQuantity > 0)
                 {
