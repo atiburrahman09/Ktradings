@@ -23,6 +23,11 @@ namespace KTrading.Models
         public decimal Khajna { get; set; }
         [Display(Name = "DSR Salary")]
         public decimal DsrSalary { get; set; }
+        [Display(Name = "Other Costing")]
+        public decimal OtherCosting { get; set; }
+        [Display(Name = "Other Costing Note")]
+        [MaxLength(1000)]
+        public string? OtherCostingNote { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal DueAmount { get; set; }
 

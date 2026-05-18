@@ -28,13 +28,19 @@ namespace KTrading.Pages.SalesOrders
         public decimal ReturnedAmount { get; set; }
         public decimal AdjustedTotal => Math.Max((Order?.Total ?? 0m) - ReturnedAmount, 0m);
         public decimal AdjustedDue => Math.Max(AdjustedTotal - (Order?.PaidAmount ?? 0m), 0m);
-        public decimal AdjustedNet => AdjustedTotal - (Order?.Commission ?? 0m) - (Order?.Khajna ?? 0m) - (Order?.DsrSalary ?? 0m);
+        public decimal AdjustedNet => AdjustedTotal - (Order?.Commission ?? 0m) - (Order?.Khajna ?? 0m) - (Order?.DsrSalary ?? 0m) - (Order?.OtherCosting ?? 0m);
 
         [BindProperty]
         public decimal KhajnaAmount { get; set; }
 
         [BindProperty]
         public decimal DsrSalaryAmount { get; set; }
+
+        [BindProperty]
+        public decimal OtherCostingAmount { get; set; }
+
+        [BindProperty]
+        public string? OtherCostingNote { get; set; }
 
         [BindProperty]
         public decimal CollectionAmount { get; set; }
@@ -51,6 +57,8 @@ namespace KTrading.Pages.SalesOrders
             if (!loaded) return NotFound();
             KhajnaAmount = Order!.Khajna;
             DsrSalaryAmount = Order.DsrSalary;
+            OtherCostingAmount = Order.OtherCosting;
+            OtherCostingNote = Order.OtherCostingNote;
             return Page();
         }
 
@@ -64,6 +72,8 @@ namespace KTrading.Pages.SalesOrders
                 ModelState.AddModelError(nameof(KhajnaAmount), "Khajna cannot be negative.");
                 await LoadOrderAsync(id);
                 DsrSalaryAmount = Order!.DsrSalary;
+                OtherCostingAmount = Order.OtherCosting;
+                OtherCostingNote = Order.OtherCostingNote;
                 return Page();
             }
 
@@ -84,10 +94,43 @@ namespace KTrading.Pages.SalesOrders
                 ModelState.AddModelError(nameof(DsrSalaryAmount), "DSR Salary cannot be negative.");
                 await LoadOrderAsync(id);
                 KhajnaAmount = Order!.Khajna;
+                OtherCostingAmount = Order.OtherCosting;
+                OtherCostingNote = Order.OtherCostingNote;
                 return Page();
             }
 
             order.DsrSalary = DsrSalaryAmount;
+            order.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync();
+
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostUpdateOtherCostingAsync(Guid id)
+        {
+            var order = await _db.SalesOrders.FindAsync(id);
+            if (order is null) return NotFound();
+
+            if (OtherCostingAmount < 0)
+            {
+                ModelState.AddModelError(nameof(OtherCostingAmount), "Other costing cannot be negative.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(OtherCostingNote) && OtherCostingNote.Length > 1000)
+            {
+                ModelState.AddModelError(nameof(OtherCostingNote), "Other costing note cannot be longer than 1000 characters.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await LoadOrderAsync(id);
+                KhajnaAmount = Order!.Khajna;
+                DsrSalaryAmount = Order.DsrSalary;
+                return Page();
+            }
+
+            order.OtherCosting = OtherCostingAmount;
+            order.OtherCostingNote = string.IsNullOrWhiteSpace(OtherCostingNote) ? null : OtherCostingNote.Trim();
             order.UpdatedAt = DateTimeOffset.UtcNow;
             await _db.SaveChangesAsync();
 
@@ -117,6 +160,8 @@ namespace KTrading.Pages.SalesOrders
                 await LoadOrderAsync(id);
                 KhajnaAmount = Order!.Khajna;
                 DsrSalaryAmount = Order.DsrSalary;
+                OtherCostingAmount = Order.OtherCosting;
+                OtherCostingNote = Order.OtherCostingNote;
                 return Page();
             }
 
@@ -201,6 +246,7 @@ namespace KTrading.Pages.SalesOrders
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
             return returnItems.Sum(i => GetSalesAdjustmentQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
@@ -213,6 +259,7 @@ namespace KTrading.Pages.SalesOrders
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
             return returnItems
@@ -227,6 +274,7 @@ namespace KTrading.Pages.SalesOrders
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
             return returnItems

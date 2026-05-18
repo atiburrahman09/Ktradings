@@ -88,6 +88,8 @@ namespace KTrading.Data
             builder.Entity<SalesOrder>().Property(s => s.Commission).HasColumnType("decimal(18,4)");
             builder.Entity<SalesOrder>().Property(s => s.Khajna).HasColumnType("decimal(18,4)");
             builder.Entity<SalesOrder>().Property(s => s.DsrSalary).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrder>().Property(s => s.OtherCosting).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrder>().Property(s => s.OtherCostingNote).HasMaxLength(1000);
             builder.Entity<SalesOrder>().Property(s => s.PaidAmount).HasColumnType("decimal(18,4)");
             builder.Entity<SalesOrder>().Property(s => s.DueAmount).HasColumnType("decimal(18,4)");
 

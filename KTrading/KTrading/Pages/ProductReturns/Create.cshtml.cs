@@ -22,13 +22,18 @@ namespace KTrading.Pages.ProductReturns
         [BindProperty]
         public List<ProductReturnItem> Items { get; set; } = new();
 
+        [BindProperty]
+        public List<ProductReturnItem> OutsideItems { get; set; } = new();
+
         [BindProperty(SupportsGet = true)]
         public Guid? SalesOrderId { get; set; }
 
         public IEnumerable<SelectListItem> SalesOrders { get; set; } = Array.Empty<SelectListItem>();
+        public IEnumerable<SelectListItem> ProductCategoryList { get; set; } = Array.Empty<SelectListItem>();
         public SalesOrder? SelectedSalesOrder { get; set; }
         public string? CustomerName { get; set; }
         public List<ReturnLineInput> ReturnLines { get; set; } = new();
+        public List<Product> ProductsFull { get; set; } = new();
 
         public async Task OnGetAsync()
         {
@@ -47,18 +52,21 @@ namespace KTrading.Pages.ProductReturns
                 return Page();
             }
 
-            Items = Items
+            var orderItems = Items
                 .Where(i => i.ProductId != Guid.Empty && (i.Quantity > 0 || i.DamagedQuantity > 0))
                 .ToList();
+            var outsideItems = OutsideItems
+                .Where(i => i.ProductId != Guid.Empty && i.DamagedQuantity > 0)
+                .ToList();
 
-            if (!Items.Any())
+            if (!orderItems.Any() && !outsideItems.Any())
             {
-                ModelState.AddModelError(nameof(Items), "Enter a return quantity for at least one product from the selected sales order.");
+                ModelState.AddModelError(nameof(Items), "Enter a return quantity or an outside sales damage return product.");
                 return Page();
             }
 
             var allowedByProduct = await GetReturnableQuantitiesAsync(salesOrder.Id);
-            foreach (var itemGroup in Items.GroupBy(i => i.ProductId))
+            foreach (var itemGroup in orderItems.GroupBy(i => i.ProductId))
             {
                 var allowed = allowedByProduct.GetValueOrDefault(itemGroup.Key);
                 var requested = itemGroup.Sum(i => i.Quantity);
@@ -74,6 +82,14 @@ namespace KTrading.Pages.ProductReturns
                 ModelState.AddModelError(nameof(Items), $"{product?.Name ?? "Selected product"} can adjust only {allowed:N2} more from this sales order.");
             }
 
+            foreach (var outsideItem in outsideItems)
+            {
+                if (outsideItem.DamagedQuantity <= 0)
+                {
+                    ModelState.AddModelError(nameof(OutsideItems), "Outside sales damage quantity must be greater than zero.");
+                }
+            }
+
             if (!ModelState.IsValid) return Page();
 
             if (Return.Id == Guid.Empty) Return.Id = Guid.NewGuid();
@@ -83,12 +99,18 @@ namespace KTrading.Pages.ProductReturns
             Return.Status = "Open";
 
             _db.ProductReturns.Add(Return);
+            Items = orderItems.Concat(outsideItems).ToList();
             if (Items.Any())
             {
                 foreach (var it in Items)
                 {
                     it.Id = Guid.NewGuid();
                     it.ProductReturnId = Return.Id;
+                    if (outsideItems.Contains(it))
+                    {
+                        it.Quantity = 0m;
+                        it.IsOutsideSalesDamageReturn = true;
+                    }
                     it.IsDamaged = it.DamagedQuantity > 0;
                 }
                 _db.ProductReturnItems.AddRange(Items);
@@ -107,6 +129,13 @@ namespace KTrading.Pages.ProductReturns
                     $"{o.OrderNumber} - {o.OrderDate:yyyy-MM-dd}",
                     o.Id.ToString(),
                     o.Id == (salesOrderId ?? SalesOrderId)))
+                .ToListAsync();
+            ProductCategoryList = await _db.ProductCategories
+                .OrderBy(c => c.Name)
+                .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
+                .ToListAsync();
+            ProductsFull = await _db.Products
+                .OrderBy(p => p.Name)
                 .ToListAsync();
 
             var selectedId = salesOrderId ?? SalesOrderId;
@@ -179,6 +208,7 @@ namespace KTrading.Pages.ProductReturns
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
             return returnItems

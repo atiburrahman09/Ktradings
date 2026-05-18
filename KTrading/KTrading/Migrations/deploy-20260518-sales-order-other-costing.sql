@@ -1,3 +1,35 @@
+BEGIN TRANSACTION;
+GO
+
+IF COL_LENGTH(N'[dbo].[SalesOrders]', N'OtherCosting') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[SalesOrders]
+        ADD [OtherCosting] decimal(18,4) NOT NULL
+            CONSTRAINT [DF_SalesOrders_OtherCosting] DEFAULT 0.0;
+END;
+GO
+
+IF COL_LENGTH(N'[dbo].[SalesOrders]', N'OtherCostingNote') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[SalesOrders]
+        ADD [OtherCostingNote] nvarchar(1000) NULL;
+END;
+GO
+
+IF EXISTS (SELECT 1 FROM [dbo].[__EFMigrationsHistory] WHERE [MigrationId] = N'20260518074419_AddSalesOrderOtherCosting')
+BEGIN
+    PRINT N'Migration 20260518074419_AddSalesOrderOtherCosting already recorded.';
+END
+ELSE
+BEGIN
+    INSERT INTO [dbo].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260518074419_AddSalesOrderOtherCosting', N'8.0.13');
+END;
+GO
+
+COMMIT;
+GO
+
 CREATE OR ALTER PROCEDURE [dbo].[usp_GetSalesSummaryAsOnDate]
     @AsOnDate date
 AS
@@ -30,7 +62,6 @@ BEGIN
             AND p.[ProductId] = ri.[ProductId]
         WHERE r.[SalesOrderId] IS NOT NULL
             AND r.[CreatedAt] < @NextDate
-            AND ri.[IsOutsideSalesDamageReturn] = 0
         GROUP BY r.[SalesOrderId]
     )
     SELECT

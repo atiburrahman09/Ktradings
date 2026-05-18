@@ -25,7 +25,15 @@
             <div class="col-md-3"><strong>Commission:</strong> @Model.Order?.Commission.ToString("N2")</div>
             <div class="col-md-3"><strong>Khajna:</strong> @Model.Order?.Khajna.ToString("N2")</div>
             <div class="col-md-3"><strong>DSR Salary:</strong> @Model.Order?.DsrSalary.ToString("N2")</div>
+            <div class="col-md-3"><strong>Other Costing:</strong> @Model.Order?.OtherCosting.ToString("N2")</div>
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Order?.OtherCostingNote))
+        {
+            <div class="mb-3">
+                <strong>Other Costing Note:</strong> @Model.Order.OtherCostingNote
+            </div>
+        }
 
         <form method="post" asp-page-handler="UpdateKhajna" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-3">
             <div class="col-md-3">
@@ -46,6 +54,22 @@
             </div>
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save DSR Salary</button>
+            </div>
+        </form>
+
+        <form method="post" asp-page-handler="UpdateOtherCosting" asp-route-id="@Model.Order?.Id" class="row g-2 align-items-end mb-4">
+            <div class="col-md-3">
+                <label asp-for="OtherCostingAmount" class="form-label">Other Costing</label>
+                <input asp-for="OtherCostingAmount" class="form-control" min="0" step="0.01" />
+                <span asp-validation-for="OtherCostingAmount" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="OtherCostingNote" class="form-label">Note</label>
+                <input asp-for="OtherCostingNote" class="form-control" maxlength="1000" />
+                <span asp-validation-for="OtherCostingNote" class="text-danger"></span>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Other Costing</button>
             </div>
         </form>
 

@@ -662,3 +662,62 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260518074419_AddSalesOrderOtherCosting'
+)
+BEGIN
+    ALTER TABLE [SalesOrders] ADD [OtherCosting] decimal(18,4) NOT NULL DEFAULT 0.0;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260518074419_AddSalesOrderOtherCosting'
+)
+BEGIN
+    ALTER TABLE [SalesOrders] ADD [OtherCostingNote] nvarchar(1000) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260518074419_AddSalesOrderOtherCosting'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260518074419_AddSalesOrderOtherCosting', N'8.0.13');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260518082200_AddOutsideSalesDamageReturnFlag'
+)
+BEGIN
+    ALTER TABLE [ProductReturnItems] ADD [IsOutsideSalesDamageReturn] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260518082200_AddOutsideSalesDamageReturnFlag'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260518082200_AddOutsideSalesDamageReturnFlag', N'8.0.13');
+END;
+GO
+
+COMMIT;
+GO
+

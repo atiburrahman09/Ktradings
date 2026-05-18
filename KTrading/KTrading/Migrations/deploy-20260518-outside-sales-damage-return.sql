@@ -1,3 +1,28 @@
+BEGIN TRANSACTION;
+GO
+
+IF COL_LENGTH(N'[dbo].[ProductReturnItems]', N'IsOutsideSalesDamageReturn') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[ProductReturnItems]
+        ADD [IsOutsideSalesDamageReturn] bit NOT NULL
+            CONSTRAINT [DF_ProductReturnItems_IsOutsideSalesDamageReturn] DEFAULT CAST(0 AS bit);
+END;
+GO
+
+IF EXISTS (SELECT 1 FROM [dbo].[__EFMigrationsHistory] WHERE [MigrationId] = N'20260518082200_AddOutsideSalesDamageReturnFlag')
+BEGIN
+    PRINT N'Migration 20260518082200_AddOutsideSalesDamageReturnFlag already recorded.';
+END
+ELSE
+BEGIN
+    INSERT INTO [dbo].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260518082200_AddOutsideSalesDamageReturnFlag', N'8.0.13');
+END;
+GO
+
+COMMIT;
+GO
+
 CREATE OR ALTER PROCEDURE [dbo].[usp_GetSalesSummaryAsOnDate]
     @AsOnDate date
 AS

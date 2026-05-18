@@ -18,6 +18,7 @@
     <thead>
         <tr>
             <th>Product</th>
+            <th>Type</th>
             <th class="text-end">Return Quantity</th>
             <th class="text-end">Damage Quantity</th>
             <th class="text-end">Stock Increase</th>
@@ -29,6 +30,7 @@
     {
         <tr>
             <td>@(Model.ProductMap.ContainsKey(it.ProductId) ? Model.ProductMap[it.ProductId] : it.ProductId.ToString())</td>
+            <td>@(it.IsOutsideSalesDamageReturn ? "Outside Sales Damage Return" : "Sales Order Return")</td>
             <td class="text-end">@it.Quantity.ToString("N2")</td>
             <td class="text-end">@KTrading.Pages.ProductReturns.DetailsModel.GetDamagedQuantity(it).ToString("N2")</td>
             <td class="text-end">@it.Quantity.ToString("N2")</td>

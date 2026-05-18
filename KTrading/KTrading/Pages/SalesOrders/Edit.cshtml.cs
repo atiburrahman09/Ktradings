@@ -426,6 +426,7 @@ namespace KTrading.Pages.SalesOrders
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
             return returnItems.Sum(i => GetSalesAdjustmentQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
@@ -438,6 +439,7 @@ namespace KTrading.Pages.SalesOrders
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
             return returnItems
@@ -452,6 +454,7 @@ namespace KTrading.Pages.SalesOrders
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
             return returnItems

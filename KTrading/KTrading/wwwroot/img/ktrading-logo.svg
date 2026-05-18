@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">KTrading logo</title>
+  <desc id="desc">A structured K mark with warehouse and distribution shapes.</desc>
+  <defs>
+    <linearGradient id="mark" x1="24" y1="16" x2="136" y2="144" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1abb9c"/>
+      <stop offset="1" stop-color="#127f72"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="18" y1="20" x2="142" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="128" height="128" rx="28" fill="#2a3f54"/>
+  <rect x="16" y="16" width="128" height="128" rx="28" fill="url(#edge)"/>
+  <path d="M48 116V44h22v28l28-28h28L92 78l38 38h-30L70 85v31H48z" fill="url(#mark)"/>
+  <path d="M48 116V92h22v24H48z" fill="#f6fbff" opacity=".96"/>
+  <path d="M78 116h51v-15H94L78 84v32z" fill="#f6fbff" opacity=".92"/>
+  <path d="M48 44h22v16H48V44z" fill="#f6fbff" opacity=".96"/>
+  <path d="M34 123h92" stroke="#1abb9c" stroke-width="6" stroke-linecap="round" opacity=".75"/>
+</svg>

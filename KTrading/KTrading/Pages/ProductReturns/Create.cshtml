@@ -4,6 +4,13 @@
     ViewData["Title"] = "Create Product Return";
 }
 
+@functions {
+    private string CategoryValue(Guid? categoryId)
+    {
+        return categoryId?.ToString() ?? string.Empty;
+    }
+}
+
 <div class="card">
     <div class="card-header">
         <h3 class="card-title"><i class="fas fa-undo-alt"></i> Create Product Return</h3>
@@ -78,6 +85,103 @@
                     </tbody>
                 </table>
             </div>
+
+            <h5>Outside Sales Damage Return</h5>
+            <div class="table-responsive mb-3">
+                <table class="table table-sm table-bordered" id="outsideDamageTable">
+                    <thead>
+                        <tr>
+                            <th style="width:22%">Category</th>
+                            <th style="width:34%">Product</th>
+                            <th style="width:170px">Damage Quantity</th>
+                            <th>Note</th>
+                            <th style="width:90px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="outside-row template d-none">
+                            <td>
+                                <select class="form-select category-select" disabled>
+                                    <option value="">-- all categories --</option>
+                                    @foreach (var category in Model.ProductCategoryList)
+                                    {
+                                        <option value="@category.Value">@category.Text</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="OutsideItems[0].ProductId" class="form-select product-select" disabled>
+                                    <option value="">-- select --</option>
+                                    @foreach (var p in Model.ProductsFull)
+                                    {
+                                        <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)">@p.Name</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <input name="OutsideItems[0].DamagedQuantity" class="form-control" type="number" min="0" step="0.01" value="0" disabled />
+                            </td>
+                            <td>
+                                <input name="OutsideItems[0].Notes" class="form-control" disabled />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-danger remove-outside-row">Remove</button>
+                            </td>
+                        </tr>
+
+                        @for (var i = 0; i < Model.OutsideItems.Count; i++)
+                        {
+                            var selectedProduct = Model.ProductsFull.FirstOrDefault(p => p.Id == Model.OutsideItems[i].ProductId);
+                            <tr class="outside-row">
+                                <td>
+                                    <select class="form-select category-select">
+                                        <option value="">-- all categories --</option>
+                                        @foreach (var category in Model.ProductCategoryList)
+                                        {
+                                            if (category.Value == selectedProduct?.ProductCategoryId?.ToString())
+                                            {
+                                                <option value="@category.Value" selected>@category.Text</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@category.Value">@category.Text</option>
+                                            }
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="OutsideItems[@i].ProductId" class="form-select product-select">
+                                        <option value="">-- select --</option>
+                                        @foreach (var p in Model.ProductsFull)
+                                        {
+                                            if (p.Id == Model.OutsideItems[i].ProductId)
+                                            {
+                                                <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" selected>@p.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)">@p.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <input name="OutsideItems[@i].DamagedQuantity" class="form-control" type="number" min="0" step="0.01" value="@Model.OutsideItems[i].DamagedQuantity" />
+                                </td>
+                                <td>
+                                    <input name="OutsideItems[@i].Notes" class="form-control" value="@Model.OutsideItems[i].Notes" />
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger remove-outside-row">Remove</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="mb-3">
+                <button id="addOutsideDamage" type="button" class="btn btn-secondary">Add Outside Damage</button>
+            </div>
         }
         else
         {
@@ -106,5 +210,92 @@
             var url = value ? '@Url.Page("Create")' + '?SalesOrderId=' + encodeURIComponent(value) : '@Url.Page("Create")';
             window.location.href = url;
         });
+
+        (function () {
+            var table = document.getElementById('outsideDamageTable');
+            if (!table) return;
+
+            var tbody = table.querySelector('tbody');
+            var template = tbody.querySelector('.template');
+            var addButton = document.getElementById('addOutsideDamage');
+            var productOptions = Array.prototype.map.call(template.querySelector('.product-select').options, function (option) {
+                return {
+                    value: option.value,
+                    text: option.text,
+                    category: normalize(option.dataset.category)
+                };
+            });
+
+            addButton?.addEventListener('click', function () {
+                var row = template.cloneNode(true);
+                row.classList.remove('template', 'd-none');
+                row.querySelectorAll('input, select').forEach(function (input) {
+                    input.disabled = false;
+                });
+                tbody.appendChild(row);
+                filterProducts(row, false);
+                updateIndexes();
+                bindRemoveButtons();
+            });
+
+            tbody.addEventListener('change', function (event) {
+                var row = event.target.closest('tr');
+                if (!row || row.classList.contains('template')) return;
+
+                if (event.target.matches('.category-select')) {
+                    filterProducts(row, true);
+                }
+            });
+
+            function filterProducts(row, resetProduct) {
+                var categorySelect = row.querySelector('.category-select');
+                var productSelect = row.querySelector('.product-select');
+                var selectedCategory = normalize(categorySelect.value);
+                var currentValue = resetProduct ? '' : productSelect.value;
+
+                productSelect.innerHTML = '';
+                productOptions.forEach(function (source) {
+                    if (source.value && selectedCategory && source.category !== selectedCategory) return;
+
+                    var option = document.createElement('option');
+                    option.value = source.value;
+                    option.text = source.text;
+                    option.dataset.category = source.category;
+                    productSelect.appendChild(option);
+                });
+
+                if (currentValue && Array.prototype.some.call(productSelect.options, function (option) { return option.value === currentValue; })) {
+                    productSelect.value = currentValue;
+                }
+            }
+
+            function updateIndexes() {
+                tbody.querySelectorAll('tr:not(.template)').forEach(function (row, index) {
+                    row.querySelectorAll('input, select').forEach(function (input) {
+                        if (input.name) {
+                            input.name = input.name.replace(/OutsideItems\[\d+\]/, 'OutsideItems[' + index + ']');
+                        }
+                    });
+                });
+            }
+
+            function bindRemoveButtons() {
+                tbody.querySelectorAll('.remove-outside-row').forEach(function (button) {
+                    button.onclick = function () {
+                        button.closest('tr').remove();
+                        updateIndexes();
+                    };
+                });
+            }
+
+            function normalize(value) {
+                return (value || '').toString().trim().toLowerCase();
+            }
+
+            tbody.querySelectorAll('tr:not(.template)').forEach(function (row) {
+                filterProducts(row, false);
+            });
+            bindRemoveButtons();
+        })();
     </script>
 }

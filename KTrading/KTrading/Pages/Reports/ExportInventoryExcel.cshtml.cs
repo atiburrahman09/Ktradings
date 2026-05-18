@@ -50,8 +50,30 @@ namespace KTrading.Pages.Reports
             var productReturnIds = productReturns.Select(r => r.Id).ToHashSet();
             var returnSalesOrderIds = productReturns.ToDictionary(r => r.Id, r => r.SalesOrderId!.Value);
             var returnItems = (await _db.ProductReturnItems.ToListAsync())
-                .Where(i => productIds.Contains(i.ProductId) && productReturnIds.Contains(i.ProductReturnId))
+                .Where(i => productIds.Contains(i.ProductId) && productReturnIds.Contains(i.ProductReturnId) && !i.IsOutsideSalesDamageReturn)
                 .ToList();
+            var reportDateStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
+            var reportDateEnd = reportDateStart.AddDays(1);
+            var todaySalesOrderIds = (await _db.SalesOrders.ToListAsync())
+                .Where(o => o.OrderDate >= reportDateStart && o.OrderDate < reportDateEnd)
+                .Select(o => o.Id)
+                .ToHashSet();
+            var todaySalesProductIds = (await _db.SalesOrderItems.ToListAsync())
+                .Where(i => todaySalesOrderIds.Contains(i.SalesOrderId))
+                .Select(i => i.ProductId)
+                .ToHashSet();
+            var outsideDamageReturnIds = (await _db.ProductReturns.ToListAsync())
+                .Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd)
+                .Select(r => r.Id)
+                .ToHashSet();
+            var outsideDamageItems = (await _db.ProductReturnItems.ToListAsync())
+                .Where(i => i.IsOutsideSalesDamageReturn
+                    && productIds.Contains(i.ProductId)
+                    && outsideDamageReturnIds.Contains(i.ProductReturnId)
+                    && !todaySalesProductIds.Contains(i.ProductId))
+                .ToList();
+            var productPrices = products.ToDictionary(p => p.Id, p => p.Price);
+            var outsideSalesDamageReturn = outsideDamageItems.Sum(i => GetDamagedReturnQuantity(i) * productPrices.GetValueOrDefault(i.ProductId));
             var salesUnitPrices = salesItems
                 .GroupBy(i => new { i.SalesOrderId, i.ProductId })
                 .ToDictionary(
@@ -82,25 +104,26 @@ namespace KTrading.Pages.Reports
             var grandCommission = salesOrders.Sum(o => o.Commission);
             var grandKhajna = salesOrders.Sum(o => o.Khajna);
             var grandDsrSalary = salesOrders.Sum(o => o.DsrSalary);
+            var grandOtherCosting = salesOrders.Sum(o => o.OtherCosting);
             var grandDue = salesOrders.Sum(o => o.DueAmount);
-            var grandNetTotal = grandSalesTotal - grandCommission - grandKhajna - grandDsrSalary - grandDue;
+            var grandNetTotal = grandSalesTotal - grandCommission - grandKhajna - grandDsrSalary - grandOtherCosting - outsideSalesDamageReturn - grandDue;
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Summary");
 
             // Title / header
-            ws.Range("A1:M1").Merge().Value = "KHONDAKAR TRADERS";
-            ws.Range("A1:M1").Style.Font.Bold = true;
-            ws.Range("A2:M2").Merge().Value = string.IsNullOrWhiteSpace(categoryName)
+            ws.Range("A1:N1").Merge().Value = "KHONDAKAR TRADERS";
+            ws.Range("A1:N1").Style.Font.Bold = true;
+            ws.Range("A2:N2").Merge().Value = string.IsNullOrWhiteSpace(categoryName)
                 ? "SUMMARY SHEET"
                 : $"{categoryName.ToUpperInvariant()} PRODUCTS SUMMARY SHEET";
-            ws.Range("A2:M2").Style.Font.Italic = true;
+            ws.Range("A2:N2").Style.Font.Italic = true;
 
             ws.Cell(4, 1).Value = "Date:";
             ws.Cell(4, 2).Value = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
             // Headers
-            var headers = new[] { "#", "CATEGORY", "PRODUCT", "SKU", "CURRENT STOCK", "IN", "OUT", "DAMAGE", "SOLD QTY", "UNIT COST", "UNIT SELL PRICE", "STOCK VALUE", "SOLD AMOUNT" };
+            var headers = new[] { "#", "CATEGORY", "PRODUCT", "SKU", "CURRENT STOCK", "IN", "OUT", "DAMAGE", "SOLD QTY", "UNIT COST", "UNIT SELL PRICE", "STOCK VALUE", "SOLD AMOUNT", "DAMAGE AMOUNT" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(6, i + 1).Value = headers[i];
@@ -126,6 +149,7 @@ namespace KTrading.Pages.Reports
                 var soldQty = Math.Max(salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.Quantity) - returnedQuantity, 0m);
                 var soldAmount = Math.Max(salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.LineTotal) - returnAmounts.GetValueOrDefault(p.Id), 0m);
                 var stockValue = qty * p.Cost;
+                var damageAmount = damage * p.Cost;
 
                 ws.Cell(row, 1).Value = row - 6; // serial
                 ws.Cell(row, 2).Value = p.ProductCategory?.Name ?? "Uncategorized";
@@ -140,9 +164,10 @@ namespace KTrading.Pages.Reports
                 ws.Cell(row, 11).Value = p.Price;
                 ws.Cell(row, 12).Value = stockValue;
                 ws.Cell(row, 13).Value = soldAmount;
+                ws.Cell(row, 14).Value = damageAmount;
 
                 // format numeric
-                for (int col = 5; col <= 13; col++)
+                for (int col = 5; col <= 14; col++)
                 {
                     ws.Cell(row, col).Style.NumberFormat.Format = "0.00";
                 }
@@ -161,8 +186,9 @@ namespace KTrading.Pages.Reports
             ws.Cell(totalRow, 9).FormulaA1 = $"SUM(I7:I{row - 1})";
             ws.Cell(totalRow, 12).FormulaA1 = $"SUM(L7:L{row - 1})";
             ws.Cell(totalRow, 13).FormulaA1 = $"SUM(M7:M{row - 1})";
-            ws.Range(totalRow, 1, totalRow, 13).Style.Font.Bold = true;
-            ws.Range(totalRow, 5, totalRow, 13).Style.NumberFormat.Format = "0.00";
+            ws.Cell(totalRow, 14).FormulaA1 = $"SUM(N7:N{row - 1})";
+            ws.Range(totalRow, 1, totalRow, 14).Style.Font.Bold = true;
+            ws.Range(totalRow, 5, totalRow, 14).Style.NumberFormat.Format = "0.00";
 
             var summaryRow = totalRow + 3;
             ws.Cell(summaryRow, 11).Value = "Total";
@@ -173,14 +199,18 @@ namespace KTrading.Pages.Reports
             ws.Cell(summaryRow + 2, 13).Value = grandKhajna;
             ws.Cell(summaryRow + 3, 11).Value = "DSR Salary";
             ws.Cell(summaryRow + 3, 13).Value = grandDsrSalary;
-            ws.Cell(summaryRow + 4, 11).Value = "Due";
-            ws.Cell(summaryRow + 4, 13).Value = grandDue;
-            ws.Cell(summaryRow + 5, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 5, 13).Value = grandNetTotal;
-            ws.Range(summaryRow, 11, summaryRow + 5, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            ws.Range(summaryRow, 11, summaryRow + 5, 11).Style.Font.Bold = true;
-            ws.Range(summaryRow, 13, summaryRow + 5, 13).Style.NumberFormat.Format = "0.00";
-            ws.Range(summaryRow + 5, 11, summaryRow + 5, 13).Style.Font.Bold = true;
+            ws.Cell(summaryRow + 4, 11).Value = "Other Costing";
+            ws.Cell(summaryRow + 4, 13).Value = grandOtherCosting;
+            ws.Cell(summaryRow + 5, 11).Value = "Outside Sales Damage Return";
+            ws.Cell(summaryRow + 5, 13).Value = outsideSalesDamageReturn;
+            ws.Cell(summaryRow + 6, 11).Value = "Due";
+            ws.Cell(summaryRow + 6, 13).Value = grandDue;
+            ws.Cell(summaryRow + 7, 11).Value = "Net Total";
+            ws.Cell(summaryRow + 7, 13).Value = grandNetTotal;
+            ws.Range(summaryRow, 11, summaryRow + 7, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(summaryRow, 11, summaryRow + 7, 11).Style.Font.Bold = true;
+            ws.Range(summaryRow, 13, summaryRow + 7, 13).Style.NumberFormat.Format = "0.00";
+            ws.Range(summaryRow + 7, 11, summaryRow + 7, 13).Style.Font.Bold = true;
 
             // Auto-fit columns
             ws.Columns().AdjustToContents();

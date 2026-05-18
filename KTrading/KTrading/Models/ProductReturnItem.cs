@@ -8,6 +8,7 @@ namespace KTrading.Models
         public decimal Quantity { get; set; }
         public decimal DamagedQuantity { get; set; }
         public bool IsDamaged { get; set; }
+        public bool IsOutsideSalesDamageReturn { get; set; }
         public string? Notes { get; set; }
     }
 }
