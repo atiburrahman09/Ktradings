@@ -16,7 +16,7 @@
 
         <div class="row mb-3">
             <div class="col-md-3"><strong>Total:</strong> @Model.AdjustedTotal.ToString("N2")</div>
-            <div class="col-md-3"><strong>Paid:</strong> @Model.Order?.PaidAmount.ToString("N2")</div>
+            <div class="col-md-3"><strong>Paid:</strong> @Model.DisplayPaidAmount.ToString("N2")</div>
             <div class="col-md-3"><strong>Due:</strong> @Model.AdjustedDue.ToString("N2")</div>
             <div class="col-md-3"><strong>Net:</strong> @Model.AdjustedNet.ToString("N2")</div>
         </div>
@@ -25,6 +25,10 @@
             <div class="col-md-3"><strong>Commission:</strong> @Model.Order?.Commission.ToString("N2")</div>
             <div class="col-md-3"><strong>Khajna:</strong> @Model.Order?.Khajna.ToString("N2")</div>
             <div class="col-md-3"><strong>DSR Salary:</strong> @Model.Order?.DsrSalary.ToString("N2")</div>
+            <div class="col-md-3"><strong>Damage Amount:</strong> @Model.DamageAmount.ToString("N2")</div>
+        </div>
+
+        <div class="row mb-3">
             <div class="col-md-3"><strong>Other Costing:</strong> @Model.Order?.OtherCosting.ToString("N2")</div>
         </div>
 

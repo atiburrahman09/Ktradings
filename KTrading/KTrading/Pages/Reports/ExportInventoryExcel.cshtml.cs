@@ -106,7 +106,7 @@ namespace KTrading.Pages.Reports
             var grandDsrSalary = salesOrders.Sum(o => o.DsrSalary);
             var grandOtherCosting = salesOrders.Sum(o => o.OtherCosting);
             var grandDue = salesOrders.Sum(o => o.DueAmount);
-            var grandNetTotal = grandSalesTotal - grandCommission - grandKhajna - grandDsrSalary - grandOtherCosting - outsideSalesDamageReturn - grandDue;
+            var grandDamageAmount = outsideSalesDamageReturn;
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Summary");
@@ -150,6 +150,7 @@ namespace KTrading.Pages.Reports
                 var soldAmount = Math.Max(salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.LineTotal) - returnAmounts.GetValueOrDefault(p.Id), 0m);
                 var stockValue = qty * p.Cost;
                 var damageAmount = damage * p.Cost;
+                grandDamageAmount += damageAmount;
 
                 ws.Cell(row, 1).Value = row - 6; // serial
                 ws.Cell(row, 2).Value = p.ProductCategory?.Name ?? "Uncategorized";
@@ -199,14 +200,14 @@ namespace KTrading.Pages.Reports
             ws.Cell(summaryRow + 2, 13).Value = grandKhajna;
             ws.Cell(summaryRow + 3, 11).Value = "DSR Salary";
             ws.Cell(summaryRow + 3, 13).Value = grandDsrSalary;
-            ws.Cell(summaryRow + 4, 11).Value = "Other Costing";
-            ws.Cell(summaryRow + 4, 13).Value = grandOtherCosting;
-            ws.Cell(summaryRow + 5, 11).Value = "Outside Sales Damage Return";
-            ws.Cell(summaryRow + 5, 13).Value = outsideSalesDamageReturn;
+            ws.Cell(summaryRow + 4, 11).Value = "Damage Amount";
+            ws.Cell(summaryRow + 4, 13).Value = grandDamageAmount;
+            ws.Cell(summaryRow + 5, 11).Value = "Other Costing";
+            ws.Cell(summaryRow + 5, 13).Value = grandOtherCosting;
             ws.Cell(summaryRow + 6, 11).Value = "Due";
             ws.Cell(summaryRow + 6, 13).Value = grandDue;
             ws.Cell(summaryRow + 7, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 7, 13).Value = grandNetTotal;
+            ws.Cell(summaryRow + 7, 13).Value = grandSalesTotal - grandCommission - grandKhajna - grandDsrSalary - grandDamageAmount - grandOtherCosting - grandDue;
             ws.Range(summaryRow, 11, summaryRow + 7, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             ws.Range(summaryRow, 11, summaryRow + 7, 11).Style.Font.Bold = true;
             ws.Range(summaryRow, 13, summaryRow + 7, 13).Style.NumberFormat.Format = "0.00";
@@ -226,7 +227,7 @@ namespace KTrading.Pages.Reports
 
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
-            return item.Quantity + Math.Max(item.DamagedQuantity, 0m);
+            return Math.Max(item.Quantity, 0m);
         }
 
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)

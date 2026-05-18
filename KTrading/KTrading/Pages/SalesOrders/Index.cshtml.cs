@@ -23,6 +23,7 @@ namespace KTrading.Pages.SalesOrders
         public Dictionary<Guid, string> SalesOfficerNames { get; set; } = new();
         public Dictionary<Guid, decimal> AdjustedTotals { get; set; } = new();
         public Dictionary<Guid, decimal> AdjustedDues { get; set; } = new();
+        public Dictionary<Guid, decimal> DamageAmounts { get; set; } = new();
         public IEnumerable<SelectListItem> CustomerList { get; set; } = Array.Empty<SelectListItem>();
         public IEnumerable<SelectListItem> SalesOfficerList { get; set; } = Array.Empty<SelectListItem>();
         public PaginationModel Pager { get; set; } = new();
@@ -113,6 +114,7 @@ namespace KTrading.Pages.SalesOrders
             var orderIds = orders.Select(o => o.Id).ToHashSet();
             AdjustedTotals = orders.ToDictionary(o => o.Id, o => o.Total);
             AdjustedDues = orders.ToDictionary(o => o.Id, o => Math.Max(o.Total - o.PaidAmount, 0m));
+            DamageAmounts = orders.ToDictionary(o => o.Id, _ => 0m);
 
             if (!orderIds.Any())
             {
@@ -152,12 +154,23 @@ namespace KTrading.Pages.SalesOrders
                         var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
                         return GetSalesAdjustmentQuantity(i) * unitPrice;
                     }));
+            var damageAmounts = returnItems
+                .GroupBy(i => returnSalesOrderIds[i.ProductReturnId])
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(i =>
+                    {
+                        var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
+                        var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
+                        return GetDamagedReturnQuantity(i) * unitPrice;
+                    }));
 
             foreach (var order in orders)
             {
                 var returnedAmount = returnedAmounts.GetValueOrDefault(order.Id);
                 AdjustedTotals[order.Id] = Math.Max(order.Total - returnedAmount, 0m);
                 AdjustedDues[order.Id] = Math.Max(AdjustedTotals[order.Id] - order.PaidAmount, 0m);
+                DamageAmounts[order.Id] = damageAmounts.GetValueOrDefault(order.Id);
             }
         }
 
@@ -234,6 +247,8 @@ namespace KTrading.Pages.SalesOrders
                     });
             var returnedAmountTotal = itemGroups.Sum(i =>
                 returnGroups.GetValueOrDefault(i.ProductId)?.SalesAdjustmentQuantity * i.UnitPrice ?? 0m);
+            var damageAmountTotal = itemGroups.Sum(i =>
+                returnGroups.GetValueOrDefault(i.ProductId)?.DamagedQuantity * i.UnitPrice ?? 0m) + outsideSalesDamageReturn;
             var reportTotal = Math.Max(order.Total - returnedAmountTotal, 0m);
             var reportDue = Math.Max(reportTotal - order.PaidAmount, 0m);
 
@@ -324,14 +339,14 @@ namespace KTrading.Pages.SalesOrders
             ws.Cell(summaryRow + 2, 13).Value = order.Khajna;
             ws.Cell(summaryRow + 3, 11).Value = "DSR Salary";
             ws.Cell(summaryRow + 3, 13).Value = order.DsrSalary;
-            ws.Cell(summaryRow + 4, 11).Value = "Other Costing";
-            ws.Cell(summaryRow + 4, 13).Value = order.OtherCosting;
-            ws.Cell(summaryRow + 5, 11).Value = "Outside Sales Damage Return";
-            ws.Cell(summaryRow + 5, 13).Value = outsideSalesDamageReturn;
+            ws.Cell(summaryRow + 4, 11).Value = "Damage Amount";
+            ws.Cell(summaryRow + 4, 13).Value = damageAmountTotal;
+            ws.Cell(summaryRow + 5, 11).Value = "Other Costing";
+            ws.Cell(summaryRow + 5, 13).Value = order.OtherCosting;
             ws.Cell(summaryRow + 6, 11).Value = "Due";
             ws.Cell(summaryRow + 6, 13).Value = reportDue;
             ws.Cell(summaryRow + 7, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 7, 13).Value = reportTotal - order.Commission - order.Khajna - order.DsrSalary - order.OtherCosting - outsideSalesDamageReturn;
+            ws.Cell(summaryRow + 7, 13).Value = reportTotal - order.Commission - order.Khajna - order.DsrSalary - damageAmountTotal - order.OtherCosting;
             ws.Range(summaryRow, 11, summaryRow + 7, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             ws.Range(summaryRow, 11, summaryRow + 7, 11).Style.Font.Bold = true;
             ws.Range(summaryRow, 13, summaryRow + 7, 13).Style.NumberFormat.Format = "0.00";
@@ -504,7 +519,7 @@ namespace KTrading.Pages.SalesOrders
 
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
-            return item.Quantity + Math.Max(item.DamagedQuantity, 0m);
+            return Math.Max(item.Quantity, 0m);
         }
 
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)

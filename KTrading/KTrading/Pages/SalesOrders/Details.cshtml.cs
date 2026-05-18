@@ -26,9 +26,11 @@ namespace KTrading.Pages.SalesOrders
         public Dictionary<int, string> PaymentMethodNames { get; set; } = new();
         public IEnumerable<SelectListItem> PaymentMethodList { get; set; } = Array.Empty<SelectListItem>();
         public decimal ReturnedAmount { get; set; }
+        public decimal DamageAmount { get; set; }
         public decimal AdjustedTotal => Math.Max((Order?.Total ?? 0m) - ReturnedAmount, 0m);
+        public decimal DisplayPaidAmount => Math.Max((Order?.PaidAmount ?? 0m) - (Order?.OtherCosting ?? 0m), 0m);
         public decimal AdjustedDue => Math.Max(AdjustedTotal - (Order?.PaidAmount ?? 0m), 0m);
-        public decimal AdjustedNet => AdjustedTotal - (Order?.Commission ?? 0m) - (Order?.Khajna ?? 0m) - (Order?.DsrSalary ?? 0m) - (Order?.OtherCosting ?? 0m);
+        public decimal AdjustedNet => AdjustedTotal - (Order?.Commission ?? 0m) - (Order?.Khajna ?? 0m) - (Order?.DsrSalary ?? 0m) - DamageAmount - (Order?.OtherCosting ?? 0m);
 
         [BindProperty]
         public decimal KhajnaAmount { get; set; }
@@ -227,6 +229,7 @@ namespace KTrading.Pages.SalesOrders
                 .Where(p => itemProductIds.Contains(p.Id))
                 .ToDictionary(p => p.Id, p => p.Name);
             ReturnedAmount = await CalculateReturnedAmountAsync(id);
+            DamageAmount = await CalculateDamageAmountAsync(id);
 
             return true;
         }
@@ -284,7 +287,33 @@ namespace KTrading.Pages.SalesOrders
 
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
-            return item.Quantity + Math.Max(item.DamagedQuantity, 0m);
+            return Math.Max(item.Quantity, 0m);
+        }
+
+        private async Task<decimal> CalculateDamageAmountAsync(Guid salesOrderId)
+        {
+            var salesItems = await _db.SalesOrderItems
+                .Where(i => i.SalesOrderId == salesOrderId)
+                .ToListAsync();
+            var unitPrices = salesItems
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+            var returnItems = await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == salesOrderId),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
+                .ToListAsync();
+
+            return returnItems.Sum(i => GetDamagedReturnQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
+        }
+
+        private static decimal GetDamagedReturnQuantity(ProductReturnItem item)
+        {
+            return item.DamagedQuantity > 0 ? item.DamagedQuantity : item.IsDamaged ? item.Quantity : 0m;
         }
 
         public class SalesOrderItemDisplay

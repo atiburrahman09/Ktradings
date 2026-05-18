@@ -464,7 +464,7 @@ namespace KTrading.Pages.SalesOrders
 
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
-            return item.Quantity + Math.Max(item.DamagedQuantity, 0m);
+            return Math.Max(item.Quantity, 0m);
         }
     }
 }
