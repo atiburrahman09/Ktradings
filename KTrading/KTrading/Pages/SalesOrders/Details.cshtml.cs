@@ -2,6 +2,7 @@ using KTrading.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using KTrading.Data;
+using KTrading.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,9 +29,20 @@ namespace KTrading.Pages.SalesOrders
         public decimal ReturnedAmount { get; set; }
         public decimal DamageAmount { get; set; }
         public decimal AdjustedTotal => Math.Max((Order?.Total ?? 0m) - ReturnedAmount, 0m);
-        public decimal DisplayPaidAmount => Math.Max((Order?.PaidAmount ?? 0m) - (Order?.OtherCosting ?? 0m), 0m);
         public decimal AdjustedDue => Math.Max(AdjustedTotal - (Order?.PaidAmount ?? 0m), 0m);
-        public decimal AdjustedNet => AdjustedTotal - (Order?.Commission ?? 0m) - (Order?.Khajna ?? 0m) - (Order?.DsrSalary ?? 0m) - DamageAmount - (Order?.OtherCosting ?? 0m);
+        public decimal AdjustedNet => SalesOrderFinancials.CalculateNetAmount(
+            AdjustedTotal,
+            Order?.Commission ?? 0m,
+            Order?.DsrSalary ?? 0m,
+            DamageAmount,
+            Order?.OtherCosting ?? 0m);
+        public decimal DisplayPaidAmount => SalesOrderFinancials.CalculatePaidAmount(
+            AdjustedTotal,
+            Order?.Commission ?? 0m,
+            Order?.DsrSalary ?? 0m,
+            DamageAmount,
+            Order?.OtherCosting ?? 0m,
+            AdjustedDue);
 
         [BindProperty]
         public decimal KhajnaAmount { get; set; }
@@ -292,9 +304,16 @@ namespace KTrading.Pages.SalesOrders
 
         private async Task<decimal> CalculateDamageAmountAsync(Guid salesOrderId)
         {
+            var order = await _db.SalesOrders.FindAsync(salesOrderId);
+            if (order is null)
+            {
+                return 0m;
+            }
+
             var salesItems = await _db.SalesOrderItems
                 .Where(i => i.SalesOrderId == salesOrderId)
                 .ToListAsync();
+            var productIds = salesItems.Select(i => i.ProductId).ToHashSet();
             var unitPrices = salesItems
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
@@ -308,7 +327,31 @@ namespace KTrading.Pages.SalesOrders
                 .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
 
-            return returnItems.Sum(i => GetDamagedReturnQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
+            var orderDamageAmount = returnItems.Sum(i => GetDamagedReturnQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
+            var outsideDamageAmount = await CalculateOutsideSalesDamageAmountAsync(order, productIds);
+
+            return orderDamageAmount + outsideDamageAmount;
+        }
+
+        private async Task<decimal> CalculateOutsideSalesDamageAmountAsync(SalesOrder order, IReadOnlySet<Guid> orderProductIds)
+        {
+            var reportDateStart = new DateTimeOffset(order.OrderDate.Date, order.OrderDate.Offset);
+            var reportDateEnd = reportDateStart.AddDays(1);
+            var outsideDamageItems = await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => item)
+                .Where(i => i.IsOutsideSalesDamageReturn && !orderProductIds.Contains(i.ProductId))
+                .ToListAsync();
+            var outsideDamageProductIds = outsideDamageItems.Select(i => i.ProductId).Distinct().ToList();
+            var outsideDamagePrices = outsideDamageProductIds.Any()
+                ? await _db.Products
+                    .Where(p => outsideDamageProductIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id, p => p.Price)
+                : new Dictionary<Guid, decimal>();
+
+            return outsideDamageItems.Sum(i => GetDamagedReturnQuantity(i) * outsideDamagePrices.GetValueOrDefault(i.ProductId));
         }
 
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)

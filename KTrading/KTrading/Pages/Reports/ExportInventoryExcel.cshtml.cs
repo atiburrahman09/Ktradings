@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using KTrading.Data;
 using KTrading.Models;
+using KTrading.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
@@ -176,6 +177,9 @@ namespace KTrading.Pages.Reports
                 row++;
             }
 
+            var grandNetTotal = SalesOrderFinancials.CalculateNetAmount(grandSalesTotal, grandCommission, grandDsrSalary, grandDamageAmount, grandOtherCosting);
+            var grandPaidAmount = SalesOrderFinancials.CalculatePaidAmount(grandSalesTotal, grandCommission, grandDsrSalary, grandDamageAmount, grandOtherCosting, grandDue);
+
             var totalRow = row;
             ws.Cell(totalRow, 1).Value = "TOTAL";
             ws.Range(totalRow, 1, totalRow, 4).Merge();
@@ -206,12 +210,14 @@ namespace KTrading.Pages.Reports
             ws.Cell(summaryRow + 5, 13).Value = grandOtherCosting;
             ws.Cell(summaryRow + 6, 11).Value = "Due";
             ws.Cell(summaryRow + 6, 13).Value = grandDue;
-            ws.Cell(summaryRow + 7, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 7, 13).Value = grandSalesTotal - grandCommission - grandKhajna - grandDsrSalary - grandDamageAmount - grandOtherCosting - grandDue;
-            ws.Range(summaryRow, 11, summaryRow + 7, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            ws.Range(summaryRow, 11, summaryRow + 7, 11).Style.Font.Bold = true;
-            ws.Range(summaryRow, 13, summaryRow + 7, 13).Style.NumberFormat.Format = "0.00";
-            ws.Range(summaryRow + 7, 11, summaryRow + 7, 13).Style.Font.Bold = true;
+            ws.Cell(summaryRow + 7, 11).Value = "Paid Amount";
+            ws.Cell(summaryRow + 7, 13).Value = grandPaidAmount;
+            ws.Cell(summaryRow + 8, 11).Value = "Net Total";
+            ws.Cell(summaryRow + 8, 13).Value = grandNetTotal;
+            ws.Range(summaryRow, 11, summaryRow + 8, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(summaryRow, 11, summaryRow + 8, 11).Style.Font.Bold = true;
+            ws.Range(summaryRow, 13, summaryRow + 8, 13).Style.NumberFormat.Format = "0.00";
+            ws.Range(summaryRow + 7, 11, summaryRow + 8, 13).Style.Font.Bold = true;
 
             // Auto-fit columns
             ws.Columns().AdjustToContents();

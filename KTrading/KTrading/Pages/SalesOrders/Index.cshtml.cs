@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using KTrading.Data;
+using KTrading.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,7 @@ namespace KTrading.Pages.SalesOrders
         public Dictionary<Guid, string> CustomerNames { get; set; } = new();
         public Dictionary<Guid, string> SalesOfficerNames { get; set; } = new();
         public Dictionary<Guid, decimal> AdjustedTotals { get; set; } = new();
+        public Dictionary<Guid, decimal> AdjustedPaidAmounts { get; set; } = new();
         public Dictionary<Guid, decimal> AdjustedDues { get; set; } = new();
         public Dictionary<Guid, decimal> DamageAmounts { get; set; } = new();
         public IEnumerable<SelectListItem> CustomerList { get; set; } = Array.Empty<SelectListItem>();
@@ -115,6 +117,13 @@ namespace KTrading.Pages.SalesOrders
             AdjustedTotals = orders.ToDictionary(o => o.Id, o => o.Total);
             AdjustedDues = orders.ToDictionary(o => o.Id, o => Math.Max(o.Total - o.PaidAmount, 0m));
             DamageAmounts = orders.ToDictionary(o => o.Id, _ => 0m);
+            AdjustedPaidAmounts = orders.ToDictionary(o => o.Id, o => SalesOrderFinancials.CalculatePaidAmount(
+                AdjustedTotals[o.Id],
+                o.Commission,
+                o.DsrSalary,
+                DamageAmounts[o.Id],
+                o.OtherCosting,
+                AdjustedDues[o.Id]));
 
             if (!orderIds.Any())
             {
@@ -129,49 +138,93 @@ namespace KTrading.Pages.SalesOrders
                 .ToListAsync();
             var productReturnIds = productReturns.Select(r => r.Id).ToHashSet();
 
-            if (!productReturnIds.Any())
-            {
-                return;
-            }
-
-            var returnSalesOrderIds = productReturns.ToDictionary(r => r.Id, r => r.SalesOrderId!.Value);
-            var returnItems = await _db.ProductReturnItems
-                .Where(i => productReturnIds.Contains(i.ProductReturnId))
-                .Where(i => !i.IsOutsideSalesDamageReturn)
-                .ToListAsync();
             var salesUnitPrices = salesItems
                 .GroupBy(i => new { i.SalesOrderId, i.ProductId })
                 .ToDictionary(
                     g => (g.Key.SalesOrderId, g.Key.ProductId),
                     g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
-            var returnedAmounts = returnItems
-                .GroupBy(i => returnSalesOrderIds[i.ProductReturnId])
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Sum(i =>
-                    {
-                        var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
-                        var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
-                        return GetSalesAdjustmentQuantity(i) * unitPrice;
-                    }));
-            var damageAmounts = returnItems
-                .GroupBy(i => returnSalesOrderIds[i.ProductReturnId])
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Sum(i =>
-                    {
-                        var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
-                        var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
-                        return GetDamagedReturnQuantity(i) * unitPrice;
-                    }));
+            var returnedAmounts = new Dictionary<Guid, decimal>();
+            var damageAmounts = new Dictionary<Guid, decimal>();
+
+            if (productReturnIds.Any())
+            {
+                var returnSalesOrderIds = productReturns.ToDictionary(r => r.Id, r => r.SalesOrderId!.Value);
+                var returnItems = await _db.ProductReturnItems
+                    .Where(i => productReturnIds.Contains(i.ProductReturnId))
+                    .Where(i => !i.IsOutsideSalesDamageReturn)
+                    .ToListAsync();
+                returnedAmounts = returnItems
+                    .GroupBy(i => returnSalesOrderIds[i.ProductReturnId])
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Sum(i =>
+                        {
+                            var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
+                            var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
+                            return GetSalesAdjustmentQuantity(i) * unitPrice;
+                        }));
+                damageAmounts = returnItems
+                    .GroupBy(i => returnSalesOrderIds[i.ProductReturnId])
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Sum(i =>
+                        {
+                            var salesOrderId = returnSalesOrderIds[i.ProductReturnId];
+                            var unitPrice = salesUnitPrices.GetValueOrDefault((salesOrderId, i.ProductId));
+                            return GetDamagedReturnQuantity(i) * unitPrice;
+                        }));
+            }
+
+            var outsideDamageAmounts = await CalculateOutsideSalesDamageAmountsAsync(orders, salesItems);
 
             foreach (var order in orders)
             {
                 var returnedAmount = returnedAmounts.GetValueOrDefault(order.Id);
                 AdjustedTotals[order.Id] = Math.Max(order.Total - returnedAmount, 0m);
                 AdjustedDues[order.Id] = Math.Max(AdjustedTotals[order.Id] - order.PaidAmount, 0m);
-                DamageAmounts[order.Id] = damageAmounts.GetValueOrDefault(order.Id);
+                DamageAmounts[order.Id] = damageAmounts.GetValueOrDefault(order.Id) + outsideDamageAmounts.GetValueOrDefault(order.Id);
+                AdjustedPaidAmounts[order.Id] = SalesOrderFinancials.CalculatePaidAmount(
+                    AdjustedTotals[order.Id],
+                    order.Commission,
+                    order.DsrSalary,
+                    DamageAmounts[order.Id],
+                    order.OtherCosting,
+                    AdjustedDues[order.Id]);
             }
+        }
+
+        private async Task<Dictionary<Guid, decimal>> CalculateOutsideSalesDamageAmountsAsync(
+            IReadOnlyCollection<SalesOrder> orders,
+            IReadOnlyCollection<SalesOrderItem> salesItems)
+        {
+            var outsideDamageAmounts = orders.ToDictionary(o => o.Id, _ => 0m);
+            var productIdsByOrder = salesItems
+                .GroupBy(i => i.SalesOrderId)
+                .ToDictionary(g => g.Key, g => g.Select(i => i.ProductId).ToHashSet());
+
+            foreach (var order in orders)
+            {
+                var orderProductIds = productIdsByOrder.GetValueOrDefault(order.Id) ?? new HashSet<Guid>();
+                var reportDateStart = new DateTimeOffset(order.OrderDate.Date, order.OrderDate.Offset);
+                var reportDateEnd = reportDateStart.AddDays(1);
+                var outsideDamageItems = await _db.ProductReturnItems
+                    .Join(_db.ProductReturns.Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd),
+                        item => item.ProductReturnId,
+                        ret => ret.Id,
+                        (item, ret) => item)
+                    .Where(i => i.IsOutsideSalesDamageReturn && !orderProductIds.Contains(i.ProductId))
+                    .ToListAsync();
+                var outsideDamageProductIds = outsideDamageItems.Select(i => i.ProductId).Distinct().ToList();
+                var outsideDamagePrices = outsideDamageProductIds.Any()
+                    ? await _db.Products
+                        .Where(p => outsideDamageProductIds.Contains(p.Id))
+                        .ToDictionaryAsync(p => p.Id, p => p.Price)
+                    : new Dictionary<Guid, decimal>();
+
+                outsideDamageAmounts[order.Id] = outsideDamageItems.Sum(i => GetDamagedReturnQuantity(i) * outsideDamagePrices.GetValueOrDefault(i.ProductId));
+            }
+
+            return outsideDamageAmounts;
         }
 
         public async Task<IActionResult> OnGetPrintAsync(Guid id)
@@ -251,6 +304,8 @@ namespace KTrading.Pages.SalesOrders
                 returnGroups.GetValueOrDefault(i.ProductId)?.DamagedQuantity * i.UnitPrice ?? 0m) + outsideSalesDamageReturn;
             var reportTotal = Math.Max(order.Total - returnedAmountTotal, 0m);
             var reportDue = Math.Max(reportTotal - order.PaidAmount, 0m);
+            var reportNet = SalesOrderFinancials.CalculateNetAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting);
+            var reportPaid = SalesOrderFinancials.CalculatePaidAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting, reportDue);
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Sales Order");
@@ -345,12 +400,14 @@ namespace KTrading.Pages.SalesOrders
             ws.Cell(summaryRow + 5, 13).Value = order.OtherCosting;
             ws.Cell(summaryRow + 6, 11).Value = "Due";
             ws.Cell(summaryRow + 6, 13).Value = reportDue;
-            ws.Cell(summaryRow + 7, 11).Value = "Net Total";
-            ws.Cell(summaryRow + 7, 13).Value = reportTotal - order.Commission - order.Khajna - order.DsrSalary - damageAmountTotal - order.OtherCosting;
-            ws.Range(summaryRow, 11, summaryRow + 7, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            ws.Range(summaryRow, 11, summaryRow + 7, 11).Style.Font.Bold = true;
-            ws.Range(summaryRow, 13, summaryRow + 7, 13).Style.NumberFormat.Format = "0.00";
-            ws.Range(summaryRow + 7, 11, summaryRow + 7, 13).Style.Font.Bold = true;
+            ws.Cell(summaryRow + 7, 11).Value = "Paid Amount";
+            ws.Cell(summaryRow + 7, 13).Value = reportPaid;
+            ws.Cell(summaryRow + 8, 11).Value = "Net Total";
+            ws.Cell(summaryRow + 8, 13).Value = reportNet;
+            ws.Range(summaryRow, 11, summaryRow + 8, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(summaryRow, 11, summaryRow + 8, 11).Style.Font.Bold = true;
+            ws.Range(summaryRow, 13, summaryRow + 8, 13).Style.NumberFormat.Format = "0.00";
+            ws.Range(summaryRow + 7, 11, summaryRow + 8, 13).Style.Font.Bold = true;
 
             if (!string.IsNullOrWhiteSpace(order.OtherCostingNote))
             {

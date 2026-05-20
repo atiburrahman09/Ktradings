@@ -63,7 +63,7 @@
                     <td>@(o.SalesOfficerId.HasValue && Model.SalesOfficerNames.TryGetValue(o.SalesOfficerId.Value, out var officerName) ? officerName : "-")</td>
                     <td>@o.OrderDate.ToString("yyyy-MM-dd")</td>
                     <td class="text-end">@Model.AdjustedTotals.GetValueOrDefault(o.Id, o.Total).ToString("N2")</td>
-                    <td class="text-end">@Math.Max(o.PaidAmount - o.OtherCosting, 0m).ToString("N2")</td>
+                    <td class="text-end">@Model.AdjustedPaidAmounts.GetValueOrDefault(o.Id).ToString("N2")</td>
                     <td class="text-end">@Model.AdjustedDues.GetValueOrDefault(o.Id, o.DueAmount).ToString("N2")</td>
                     <td class="text-end">@o.Commission.ToString("N2")</td>
                     <td class="text-end">@o.Khajna.ToString("N2")</td>
