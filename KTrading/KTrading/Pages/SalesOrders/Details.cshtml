@@ -138,13 +138,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (var payment in Model.Payments)
+                @foreach (var paymentRow in Model.DisplayPayments)
                 {
+                    var payment = paymentRow.Payment;
                     <tr>
                         <td>@payment.PaymentDate.ToString("yyyy-MM-dd")</td>
                         <td>@(payment.PaymentMethodId.HasValue && Model.PaymentMethodNames.TryGetValue(payment.PaymentMethodId.Value, out var methodName) ? methodName : "")</td>
                         <td>@payment.Reference</td>
-                        <td class="text-end">@payment.Amount.ToString("N2")</td>
+                        <td class="text-end">@paymentRow.Amount.ToString("N2")</td>
                     </tr>
                 }
                 </tbody>

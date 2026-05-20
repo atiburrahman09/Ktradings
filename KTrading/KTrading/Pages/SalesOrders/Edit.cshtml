@@ -18,6 +18,9 @@
     <form method="post" class="card-body">
         <input type="hidden" asp-for="SalesOrder.Id" />
         <input type="hidden" id="returnAdjustment" value="@Model.ReturnedAmount" />
+        <input type="hidden" id="dsrSalaryAdjustment" value="@Model.SalesOrder.DsrSalary" />
+        <input type="hidden" id="damageAdjustment" value="@Model.DamageAmount" />
+        <input type="hidden" id="otherCostingAdjustment" value="@Model.SalesOrder.OtherCosting" />
         <input type="hidden" id="salesOrderNetQuantityMode" value="true" />
         <input type="hidden" id="salesOrderDueInputMode" value="true" />
         <div asp-validation-summary="All" class="text-danger mb-3"></div>

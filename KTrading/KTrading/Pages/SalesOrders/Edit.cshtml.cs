@@ -1,5 +1,6 @@
 using KTrading.Data;
 using KTrading.Models;
+using KTrading.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -32,6 +33,7 @@ namespace KTrading.Pages.SalesOrders
         public Dictionary<Guid, decimal> ReturnedQuantityByProduct { get; set; } = new();
         public Dictionary<Guid, decimal> SalesAdjustmentQuantityByProduct { get; set; } = new();
         public decimal ReturnedAmount { get; set; }
+        public decimal DamageAmount { get; set; }
         [BindProperty]
         public decimal DueAmountInput { get; set; }
 
@@ -42,7 +44,8 @@ namespace KTrading.Pages.SalesOrders
 
             await LoadListsAsync(id);
             ReturnedAmount = await CalculateReturnedAmountAsync(id);
-            DueAmountInput = Math.Max(SalesOrder.Total - ReturnedAmount - SalesOrder.PaidAmount, 0m);
+            DamageAmount = await CalculateDamageAmountAsync(SalesOrder, Items);
+            DueAmountInput = Math.Max(SalesOrder.DueAmount, 0m);
             ApplyReturnAdjustedDisplayItems();
             return Page();
         }
@@ -72,6 +75,7 @@ namespace KTrading.Pages.SalesOrders
             {
                 await LoadListsAsync(id);
                 ReturnedAmount = await CalculateReturnedAmountAsync(id);
+                DamageAmount = await CalculateDamageAmountAsync(existingOrder, Items);
                 DueAmountInput = Math.Max(DueAmountInput, 0m);
                 ApplyReturnAdjustedDisplayItems();
                 return Page();
@@ -131,9 +135,16 @@ namespace KTrading.Pages.SalesOrders
             existingOrder.Total = Math.Max(subtotal + SalesOrder.Tax - SalesOrder.Discount, 0m);
             existingOrder.Commission = Math.Max(SalesOrder.Commission, 0m);
             var returnedAmount = await CalculateReturnedAmountAsync(id, Items);
+            var damageAmount = await CalculateDamageAmountAsync(existingOrder, Items);
             var adjustedTotal = Math.Max(existingOrder.Total - returnedAmount, 0m);
-            existingOrder.PaidAmount = Math.Max(adjustedTotal - DueAmountInput, 0m);
-            existingOrder.DueAmount = Math.Max(existingOrder.Total - existingOrder.PaidAmount, 0m);
+            existingOrder.PaidAmount = SalesOrderFinancials.CalculatePaidAmount(
+                adjustedTotal,
+                existingOrder.Commission,
+                existingOrder.DsrSalary,
+                damageAmount,
+                existingOrder.OtherCosting,
+                DueAmountInput);
+            existingOrder.DueAmount = Math.Max(DueAmountInput, 0m);
             existingOrder.UpdatedAt = DateTimeOffset.UtcNow;
 
             await ReconcileInitialPaymentAsync(existingOrder);
@@ -289,9 +300,17 @@ namespace KTrading.Pages.SalesOrders
             var total = Math.Max(subtotal + SalesOrder.Tax - SalesOrder.Discount, 0m);
             var returnedAmount = await CalculateReturnedAmountAsync(salesOrderId, Items);
             var adjustedTotal = Math.Max(total - returnedAmount, 0m);
-            if (DueAmountInput > adjustedTotal)
+            var existingOrder = await _db.SalesOrders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == salesOrderId);
+            var damageAmount = existingOrder is null ? 0m : await CalculateDamageAmountAsync(existingOrder, Items);
+            var payableAmount = SalesOrderFinancials.CalculateNetAmount(
+                adjustedTotal,
+                Math.Max(SalesOrder.Commission, 0m),
+                existingOrder?.DsrSalary ?? 0m,
+                damageAmount,
+                existingOrder?.OtherCosting ?? 0m);
+            if (DueAmountInput > payableAmount)
             {
-                ModelState.AddModelError(nameof(DueAmountInput), $"Due amount cannot be greater than adjusted total ({adjustedTotal:N2}).");
+                ModelState.AddModelError(nameof(DueAmountInput), $"Due amount cannot be greater than payable amount ({payableAmount:N2}).");
                 return;
             }
 
@@ -299,7 +318,13 @@ namespace KTrading.Pages.SalesOrders
                 .Where(p => p.SalesOrderId == salesOrderId
                     && (p.Reference == null || !p.Reference.StartsWith("Initial payment for ")))
                 .SumAsync(p => p.Amount);
-            var paidAmount = Math.Max(adjustedTotal - DueAmountInput, 0m);
+            var paidAmount = SalesOrderFinancials.CalculatePaidAmount(
+                adjustedTotal,
+                Math.Max(SalesOrder.Commission, 0m),
+                existingOrder?.DsrSalary ?? 0m,
+                damageAmount,
+                existingOrder?.OtherCosting ?? 0m,
+                DueAmountInput);
 
             if (paidAmount < nonInitialPayments)
             {
@@ -432,6 +457,49 @@ namespace KTrading.Pages.SalesOrders
             return returnItems.Sum(i => GetSalesAdjustmentQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
         }
 
+        private async Task<decimal> CalculateDamageAmountAsync(SalesOrder order, IEnumerable<SalesOrderItem> salesItems)
+        {
+            var salesItemList = salesItems.ToList();
+            var productIds = salesItemList.Select(i => i.ProductId).ToHashSet();
+            var unitPrices = salesItemList
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+            var returnItems = await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == order.Id),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => item)
+                .Where(i => !i.IsOutsideSalesDamageReturn)
+                .ToListAsync();
+            var orderDamageAmount = returnItems.Sum(i => GetDamagedReturnQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
+            var outsideDamageAmount = await CalculateOutsideSalesDamageAmountAsync(order, productIds);
+
+            return orderDamageAmount + outsideDamageAmount;
+        }
+
+        private async Task<decimal> CalculateOutsideSalesDamageAmountAsync(SalesOrder order, IReadOnlySet<Guid> orderProductIds)
+        {
+            var reportDateStart = new DateTimeOffset(order.OrderDate.Date, order.OrderDate.Offset);
+            var reportDateEnd = reportDateStart.AddDays(1);
+            var outsideDamageItems = await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => item)
+                .Where(i => i.IsOutsideSalesDamageReturn && !orderProductIds.Contains(i.ProductId))
+                .ToListAsync();
+            var outsideDamageProductIds = outsideDamageItems.Select(i => i.ProductId).Distinct().ToList();
+            var outsideDamagePrices = outsideDamageProductIds.Any()
+                ? await _db.Products
+                    .Where(p => outsideDamageProductIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id, p => p.Price)
+                : new Dictionary<Guid, decimal>();
+
+            return outsideDamageItems.Sum(i => GetDamagedReturnQuantity(i) * outsideDamagePrices.GetValueOrDefault(i.ProductId));
+        }
+
         private async Task<Dictionary<Guid, decimal>> GetReturnedQuantitiesAsync(Guid salesOrderId)
         {
             var returnItems = await _db.ProductReturnItems
@@ -465,6 +533,11 @@ namespace KTrading.Pages.SalesOrders
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
             return Math.Max(item.Quantity, 0m);
+        }
+
+        private static decimal GetDamagedReturnQuantity(ProductReturnItem item)
+        {
+            return item.DamagedQuantity > 0 ? item.DamagedQuantity : item.IsDamaged ? item.Quantity : 0m;
         }
     }
 }

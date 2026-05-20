@@ -1,4 +1,5 @@
 using KTrading.Models;
+using KTrading.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using KTrading.Data;
@@ -87,8 +88,9 @@ namespace KTrading.Pages.SalesOrders
             SalesOrder.Khajna = 0;
             SalesOrder.DsrSalary = 0;
             if (SalesOrder.PaidAmount < 0) SalesOrder.PaidAmount = 0;
-            SalesOrder.DueAmount = SalesOrder.Total - SalesOrder.PaidAmount;
-            if (SalesOrder.DueAmount < 0) SalesOrder.DueAmount = 0;
+            var payableAmount = SalesOrderFinancials.CalculateNetAmount(SalesOrder.Total, SalesOrder.Commission, SalesOrder.DsrSalary, 0m, SalesOrder.OtherCosting);
+            if (SalesOrder.PaidAmount > payableAmount) SalesOrder.PaidAmount = payableAmount;
+            SalesOrder.DueAmount = Math.Max(payableAmount - SalesOrder.PaidAmount, 0m);
 
             _db.SalesOrders.Add(SalesOrder);
             if(Items.Any()) _db.SalesOrderItems.AddRange(Items);

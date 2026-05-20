@@ -115,7 +115,7 @@ namespace KTrading.Pages.SalesOrders
         {
             var orderIds = orders.Select(o => o.Id).ToHashSet();
             AdjustedTotals = orders.ToDictionary(o => o.Id, o => o.Total);
-            AdjustedDues = orders.ToDictionary(o => o.Id, o => Math.Max(o.Total - o.PaidAmount, 0m));
+            AdjustedDues = orders.ToDictionary(o => o.Id, o => Math.Max(o.DueAmount, 0m));
             DamageAmounts = orders.ToDictionary(o => o.Id, _ => 0m);
             AdjustedPaidAmounts = orders.ToDictionary(o => o.Id, o => SalesOrderFinancials.CalculatePaidAmount(
                 AdjustedTotals[o.Id],
@@ -181,7 +181,7 @@ namespace KTrading.Pages.SalesOrders
             {
                 var returnedAmount = returnedAmounts.GetValueOrDefault(order.Id);
                 AdjustedTotals[order.Id] = Math.Max(order.Total - returnedAmount, 0m);
-                AdjustedDues[order.Id] = Math.Max(AdjustedTotals[order.Id] - order.PaidAmount, 0m);
+                AdjustedDues[order.Id] = Math.Max(order.DueAmount, 0m);
                 DamageAmounts[order.Id] = damageAmounts.GetValueOrDefault(order.Id) + outsideDamageAmounts.GetValueOrDefault(order.Id);
                 AdjustedPaidAmounts[order.Id] = SalesOrderFinancials.CalculatePaidAmount(
                     AdjustedTotals[order.Id],
@@ -303,7 +303,7 @@ namespace KTrading.Pages.SalesOrders
             var damageAmountTotal = itemGroups.Sum(i =>
                 returnGroups.GetValueOrDefault(i.ProductId)?.DamagedQuantity * i.UnitPrice ?? 0m) + outsideSalesDamageReturn;
             var reportTotal = Math.Max(order.Total - returnedAmountTotal, 0m);
-            var reportDue = Math.Max(reportTotal - order.PaidAmount, 0m);
+            var reportDue = Math.Max(order.DueAmount, 0m);
             var reportNet = SalesOrderFinancials.CalculateNetAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting);
             var reportPaid = SalesOrderFinancials.CalculatePaidAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting, reportDue);
 
@@ -432,11 +432,17 @@ namespace KTrading.Pages.SalesOrders
             }
 
             var paymentRow = paymentsStartRow + 2;
-            foreach (var payment in payments)
+            var initialPayment = payments.FirstOrDefault(IsInitialPayment);
+            var otherPaymentsTotal = payments
+                .Where(p => p.Id != initialPayment?.Id)
+                .Sum(p => p.Amount);
+            var adjustedInitialPayment = Math.Max(reportPaid - otherPaymentsTotal, 0m);
+
+            foreach (var payment in payments.Where(p => !IsInitialPayment(p) || adjustedInitialPayment > 0m))
             {
                 ws.Cell(paymentRow, 1).Value = payment.PaymentDate.ToString("yyyy-MM-dd");
                 ws.Cell(paymentRow, 2).Value = payment.Reference ?? string.Empty;
-                ws.Cell(paymentRow, 3).Value = payment.Amount;
+                ws.Cell(paymentRow, 3).Value = IsInitialPayment(payment) ? adjustedInitialPayment : payment.Amount;
                 ws.Cell(paymentRow, 3).Style.NumberFormat.Format = "0.00";
                 paymentRow++;
             }
@@ -582,6 +588,11 @@ namespace KTrading.Pages.SalesOrders
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)
         {
             return item.DamagedQuantity > 0 ? item.DamagedQuantity : item.IsDamaged ? item.Quantity : 0m;
+        }
+
+        private static bool IsInitialPayment(Payment payment)
+        {
+            return payment.Reference != null && payment.Reference.StartsWith("Initial payment for ");
         }
     }
 }

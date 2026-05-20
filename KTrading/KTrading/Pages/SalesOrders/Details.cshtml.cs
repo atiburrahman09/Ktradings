@@ -23,13 +23,14 @@ namespace KTrading.Pages.SalesOrders
         public List<SalesOrderItem> Items { get; set; } = new();
         public List<SalesOrderItemDisplay> DisplayItems { get; set; } = new();
         public List<Payment> Payments { get; set; } = new();
+        public List<PaymentDisplay> DisplayPayments { get; set; } = new();
         public Dictionary<Guid, string> ProductNames { get; set; } = new();
         public Dictionary<int, string> PaymentMethodNames { get; set; } = new();
         public IEnumerable<SelectListItem> PaymentMethodList { get; set; } = Array.Empty<SelectListItem>();
         public decimal ReturnedAmount { get; set; }
         public decimal DamageAmount { get; set; }
         public decimal AdjustedTotal => Math.Max((Order?.Total ?? 0m) - ReturnedAmount, 0m);
-        public decimal AdjustedDue => Math.Max(AdjustedTotal - (Order?.PaidAmount ?? 0m), 0m);
+        public decimal AdjustedDue => Math.Max(Order?.DueAmount ?? 0m, 0m);
         public decimal AdjustedNet => SalesOrderFinancials.CalculateNetAmount(
             AdjustedTotal,
             Order?.Commission ?? 0m,
@@ -115,6 +116,7 @@ namespace KTrading.Pages.SalesOrders
 
             order.DsrSalary = DsrSalaryAmount;
             order.UpdatedAt = DateTimeOffset.UtcNow;
+            await RecalculatePaidAndInitialPaymentAsync(order);
             await _db.SaveChangesAsync();
 
             return RedirectToPage(new { id });
@@ -146,6 +148,7 @@ namespace KTrading.Pages.SalesOrders
             order.OtherCosting = OtherCostingAmount;
             order.OtherCostingNote = string.IsNullOrWhiteSpace(OtherCostingNote) ? null : OtherCostingNote.Trim();
             order.UpdatedAt = DateTimeOffset.UtcNow;
+            await RecalculatePaidAndInitialPaymentAsync(order);
             await _db.SaveChangesAsync();
 
             return RedirectToPage(new { id });
@@ -162,7 +165,7 @@ namespace KTrading.Pages.SalesOrders
             }
 
             var returnedAmount = await CalculateReturnedAmountAsync(id);
-            var adjustedDue = Math.Max(order.DueAmount - returnedAmount, 0m);
+            var adjustedDue = Math.Max(order.DueAmount, 0m);
 
             if (CollectionAmount > adjustedDue)
             {
@@ -192,8 +195,7 @@ namespace KTrading.Pages.SalesOrders
             });
 
             order.PaidAmount += CollectionAmount;
-            order.DueAmount = order.Total - order.PaidAmount;
-            if (order.DueAmount < 0) order.DueAmount = 0;
+            order.DueAmount = Math.Max(order.DueAmount - CollectionAmount, 0m);
             order.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _db.SaveChangesAsync();
@@ -242,8 +244,88 @@ namespace KTrading.Pages.SalesOrders
                 .ToDictionary(p => p.Id, p => p.Name);
             ReturnedAmount = await CalculateReturnedAmountAsync(id);
             DamageAmount = await CalculateDamageAmountAsync(id);
+            DisplayPayments = BuildDisplayPayments(Payments, DisplayPaidAmount);
 
             return true;
+        }
+
+        private async Task RecalculatePaidAndInitialPaymentAsync(SalesOrder order)
+        {
+            var returnedAmount = await CalculateReturnedAmountAsync(order.Id);
+            var damageAmount = await CalculateDamageAmountAsync(order.Id);
+            var adjustedTotal = Math.Max(order.Total - returnedAmount, 0m);
+            order.PaidAmount = SalesOrderFinancials.CalculatePaidAmount(
+                adjustedTotal,
+                order.Commission,
+                order.DsrSalary,
+                damageAmount,
+                order.OtherCosting,
+                Math.Max(order.DueAmount, 0m));
+
+            await ReconcileInitialPaymentAsync(order);
+        }
+
+        private async Task ReconcileInitialPaymentAsync(SalesOrder order)
+        {
+            var payments = await _db.Payments
+                .Where(p => p.SalesOrderId == order.Id)
+                .ToListAsync();
+            var initialPayment = payments.FirstOrDefault(IsInitialPayment);
+            var otherPaymentsTotal = payments
+                .Where(p => p.Id != initialPayment?.Id)
+                .Sum(p => p.Amount);
+            var initialAmount = Math.Max(order.PaidAmount - otherPaymentsTotal, 0m);
+
+            if (initialAmount == 0m)
+            {
+                if (initialPayment is not null)
+                {
+                    _db.Payments.Remove(initialPayment);
+                }
+
+                return;
+            }
+
+            if (initialPayment is null)
+            {
+                _db.Payments.Add(new Payment
+                {
+                    Id = Guid.NewGuid(),
+                    SalesOrderId = order.Id,
+                    PaymentDate = order.OrderDate,
+                    Amount = initialAmount,
+                    Reference = $"Initial payment for {order.OrderNumber}"
+                });
+                return;
+            }
+
+            initialPayment.PaymentDate = order.OrderDate;
+            initialPayment.Amount = initialAmount;
+            initialPayment.Reference = $"Initial payment for {order.OrderNumber}";
+        }
+
+        private static List<PaymentDisplay> BuildDisplayPayments(IEnumerable<Payment> payments, decimal paidAmount)
+        {
+            var paymentList = payments.OrderBy(p => p.PaymentDate).ToList();
+            var initialPayment = paymentList.FirstOrDefault(IsInitialPayment);
+            var otherPaymentsTotal = paymentList
+                .Where(p => p.Id != initialPayment?.Id)
+                .Sum(p => p.Amount);
+            var adjustedInitialAmount = Math.Max(paidAmount - otherPaymentsTotal, 0m);
+
+            return paymentList
+                .Where(p => !IsInitialPayment(p) || adjustedInitialAmount > 0m)
+                .Select(p => new PaymentDisplay
+                {
+                    Payment = p,
+                    Amount = IsInitialPayment(p) ? adjustedInitialAmount : p.Amount
+                })
+                .ToList();
+        }
+
+        private static bool IsInitialPayment(Payment payment)
+        {
+            return payment.Reference != null && payment.Reference.StartsWith("Initial payment for ");
         }
 
         private async Task<decimal> CalculateReturnedAmountAsync(Guid salesOrderId)
@@ -365,6 +447,12 @@ namespace KTrading.Pages.SalesOrders
             public decimal Quantity { get; set; }
             public decimal UnitPrice { get; set; }
             public decimal LineTotal { get; set; }
+        }
+
+        public class PaymentDisplay
+        {
+            public Payment Payment { get; set; } = new();
+            public decimal Amount { get; set; }
         }
     }
 }

@@ -248,6 +248,9 @@
         var commissionInput = document.getElementById('SalesOrder_Commission');
         var paid = parseFloat(paidInput && paidInput.value) || 0;
         var commission = parseFloat(commissionInput && commissionInput.value) || 0;
+        var dsrSalary = parseFloat(document.getElementById('dsrSalaryAdjustment') && document.getElementById('dsrSalaryAdjustment').value) || 0;
+        var damageAmount = parseFloat(document.getElementById('damageAdjustment') && document.getElementById('damageAdjustment').value) || 0;
+        var otherCosting = parseFloat(document.getElementById('otherCostingAdjustment') && document.getElementById('otherCostingAdjustment').value) || 0;
         var returnAdjustmentInput = document.getElementById('returnAdjustment');
         var netQuantityModeInput = document.getElementById('salesOrderNetQuantityMode');
         var netQuantityMode = netQuantityModeInput && netQuantityModeInput.value === 'true';
@@ -266,13 +269,14 @@
         var netEl = document.getElementById('netAfterExpenses');
         var dueInputModeInput = document.getElementById('salesOrderDueInputMode');
         var dueInputMode = dueInputModeInput && dueInputModeInput.value === 'true';
+        var payable = Math.max(subtotal - returned - commission - dsrSalary - damageAmount - otherCosting, 0);
         if(dueInputMode && dueEl && paidInput){
             var due = parseFloat(dueEl.value) || 0;
-            paidInput.value = Math.max(subtotal - returned - due, 0).toFixed(2);
+            paidInput.value = Math.max(payable - due, 0).toFixed(2);
         } else if(dueEl) {
-            dueEl.value = Math.max(subtotal - returned - paid, 0).toFixed(2);
+            dueEl.value = Math.max(payable - paid, 0).toFixed(2);
         }
-        if(netEl) netEl.textContent = (subtotal - returned - commission).toFixed(2);
+        if(netEl) netEl.textContent = payable.toFixed(2);
     }
 
     document.addEventListener('DOMContentLoaded', function(){
