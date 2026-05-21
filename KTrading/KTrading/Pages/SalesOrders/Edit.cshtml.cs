@@ -460,7 +460,6 @@ namespace KTrading.Pages.SalesOrders
         private async Task<decimal> CalculateDamageAmountAsync(SalesOrder order, IEnumerable<SalesOrderItem> salesItems)
         {
             var salesItemList = salesItems.ToList();
-            var productIds = salesItemList.Select(i => i.ProductId).ToHashSet();
             var unitPrices = salesItemList
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
@@ -474,21 +473,19 @@ namespace KTrading.Pages.SalesOrders
                 .Where(i => !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
             var orderDamageAmount = returnItems.Sum(i => GetDamagedReturnQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
-            var outsideDamageAmount = await CalculateOutsideSalesDamageAmountAsync(order, productIds);
+            var outsideDamageAmount = await CalculateOutsideSalesDamageAmountAsync(order);
 
             return orderDamageAmount + outsideDamageAmount;
         }
 
-        private async Task<decimal> CalculateOutsideSalesDamageAmountAsync(SalesOrder order, IReadOnlySet<Guid> orderProductIds)
+        private async Task<decimal> CalculateOutsideSalesDamageAmountAsync(SalesOrder order)
         {
-            var reportDateStart = new DateTimeOffset(order.OrderDate.Date, order.OrderDate.Offset);
-            var reportDateEnd = reportDateStart.AddDays(1);
             var outsideDamageItems = await _db.ProductReturnItems
-                .Join(_db.ProductReturns.Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd),
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == order.Id),
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
-                .Where(i => i.IsOutsideSalesDamageReturn && !orderProductIds.Contains(i.ProductId))
+                .Where(i => i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
             var outsideDamageProductIds = outsideDamageItems.Select(i => i.ProductId).Distinct().ToList();
             var outsideDamagePrices = outsideDamageProductIds.Any()

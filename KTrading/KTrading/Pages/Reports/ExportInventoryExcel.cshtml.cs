@@ -53,28 +53,21 @@ namespace KTrading.Pages.Reports
             var returnItems = (await _db.ProductReturnItems.ToListAsync())
                 .Where(i => productIds.Contains(i.ProductId) && productReturnIds.Contains(i.ProductReturnId) && !i.IsOutsideSalesDamageReturn)
                 .ToList();
-            var reportDateStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
-            var reportDateEnd = reportDateStart.AddDays(1);
-            var todaySalesOrderIds = (await _db.SalesOrders.ToListAsync())
-                .Where(o => o.OrderDate >= reportDateStart && o.OrderDate < reportDateEnd)
-                .Select(o => o.Id)
-                .ToHashSet();
-            var todaySalesProductIds = (await _db.SalesOrderItems.ToListAsync())
-                .Where(i => todaySalesOrderIds.Contains(i.SalesOrderId))
-                .Select(i => i.ProductId)
-                .ToHashSet();
-            var outsideDamageReturnIds = (await _db.ProductReturns.ToListAsync())
-                .Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd)
-                .Select(r => r.Id)
-                .ToHashSet();
             var outsideDamageItems = (await _db.ProductReturnItems.ToListAsync())
                 .Where(i => i.IsOutsideSalesDamageReturn
                     && productIds.Contains(i.ProductId)
-                    && outsideDamageReturnIds.Contains(i.ProductReturnId)
-                    && !todaySalesProductIds.Contains(i.ProductId))
+                    && productReturnIds.Contains(i.ProductReturnId))
                 .ToList();
             var productPrices = products.ToDictionary(p => p.Id, p => p.Price);
-            var outsideSalesDamageReturn = outsideDamageItems.Sum(i => GetDamagedReturnQuantity(i) * productPrices.GetValueOrDefault(i.ProductId));
+            var outsideDamageGroups = outsideDamageItems
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        DamagedQuantity = g.Sum(GetDamagedReturnQuantity),
+                        DamageAmount = g.Sum(i => GetDamagedReturnQuantity(i) * productPrices.GetValueOrDefault(i.ProductId))
+                    });
             var salesUnitPrices = salesItems
                 .GroupBy(i => new { i.SalesOrderId, i.ProductId })
                 .ToDictionary(
@@ -107,7 +100,7 @@ namespace KTrading.Pages.Reports
             var grandDsrSalary = salesOrders.Sum(o => o.DsrSalary);
             var grandOtherCosting = salesOrders.Sum(o => o.OtherCosting);
             var grandDue = salesOrders.Sum(o => o.DueAmount);
-            var grandDamageAmount = outsideSalesDamageReturn;
+            var grandDamageAmount = 0m;
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Summary");
@@ -141,16 +134,19 @@ namespace KTrading.Pages.Reports
                 var ins = movements.Where(m => m.ProductId == p.Id && m.Quantity > 0).Sum(m => m.Quantity);
                 var outs = movements.Where(m => m.ProductId == p.Id && m.Quantity < 0).Sum(m => -m.Quantity);
                 returnGroups.TryGetValue(p.Id, out var returnGroup);
+                outsideDamageGroups.TryGetValue(p.Id, out var outsideDamageGroup);
                 var returnedQuantity = returnGroup?.ReturnedQuantity ?? 0m;
                 var damagedReturnQuantity = returnGroup?.DamagedQuantity ?? 0m;
+                var outsideDamageQuantity = outsideDamageGroup?.DamagedQuantity ?? 0m;
+                var outsideDamageAmount = outsideDamageGroup?.DamageAmount ?? 0m;
                 var damageMovementQuantity = movements
                     .Where(m => m.ProductId == p.Id && string.Equals(m.MovementType, "DAMAGE", StringComparison.OrdinalIgnoreCase))
                     .Sum(m => Math.Abs(m.Quantity));
-                var damage = damagedReturnQuantity + damageMovementQuantity;
+                var damage = damagedReturnQuantity + damageMovementQuantity + outsideDamageQuantity;
                 var soldQty = Math.Max(salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.Quantity) - returnedQuantity, 0m);
                 var soldAmount = Math.Max(salesItems.Where(i => i.ProductId == p.Id).Sum(i => i.LineTotal) - returnAmounts.GetValueOrDefault(p.Id), 0m);
                 var stockValue = qty * p.Cost;
-                var damageAmount = damage * p.Cost;
+                var damageAmount = ((damagedReturnQuantity + damageMovementQuantity) * p.Cost) + outsideDamageAmount;
                 grandDamageAmount += damageAmount;
 
                 ws.Cell(row, 1).Value = row - 6; // serial

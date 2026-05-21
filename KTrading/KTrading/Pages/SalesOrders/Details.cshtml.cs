@@ -395,7 +395,6 @@ namespace KTrading.Pages.SalesOrders
             var salesItems = await _db.SalesOrderItems
                 .Where(i => i.SalesOrderId == salesOrderId)
                 .ToListAsync();
-            var productIds = salesItems.Select(i => i.ProductId).ToHashSet();
             var unitPrices = salesItems
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
@@ -410,21 +409,19 @@ namespace KTrading.Pages.SalesOrders
                 .ToListAsync();
 
             var orderDamageAmount = returnItems.Sum(i => GetDamagedReturnQuantity(i) * unitPrices.GetValueOrDefault(i.ProductId));
-            var outsideDamageAmount = await CalculateOutsideSalesDamageAmountAsync(order, productIds);
+            var outsideDamageAmount = await CalculateOutsideSalesDamageAmountAsync(order);
 
             return orderDamageAmount + outsideDamageAmount;
         }
 
-        private async Task<decimal> CalculateOutsideSalesDamageAmountAsync(SalesOrder order, IReadOnlySet<Guid> orderProductIds)
+        private async Task<decimal> CalculateOutsideSalesDamageAmountAsync(SalesOrder order)
         {
-            var reportDateStart = new DateTimeOffset(order.OrderDate.Date, order.OrderDate.Offset);
-            var reportDateEnd = reportDateStart.AddDays(1);
             var outsideDamageItems = await _db.ProductReturnItems
-                .Join(_db.ProductReturns.Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd),
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == order.Id),
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
-                .Where(i => i.IsOutsideSalesDamageReturn && !orderProductIds.Contains(i.ProductId))
+                .Where(i => i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
             var outsideDamageProductIds = outsideDamageItems.Select(i => i.ProductId).Distinct().ToList();
             var outsideDamagePrices = outsideDamageProductIds.Any()

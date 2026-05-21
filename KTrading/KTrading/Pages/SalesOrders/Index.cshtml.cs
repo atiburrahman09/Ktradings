@@ -175,7 +175,7 @@ namespace KTrading.Pages.SalesOrders
                         }));
             }
 
-            var outsideDamageAmounts = await CalculateOutsideSalesDamageAmountsAsync(orders, salesItems);
+            var outsideDamageAmounts = await CalculateOutsideSalesDamageAmountsAsync(orders);
 
             foreach (var order in orders)
             {
@@ -194,34 +194,27 @@ namespace KTrading.Pages.SalesOrders
         }
 
         private async Task<Dictionary<Guid, decimal>> CalculateOutsideSalesDamageAmountsAsync(
-            IReadOnlyCollection<SalesOrder> orders,
-            IReadOnlyCollection<SalesOrderItem> salesItems)
+            IReadOnlyCollection<SalesOrder> orders)
         {
             var outsideDamageAmounts = orders.ToDictionary(o => o.Id, _ => 0m);
-            var productIdsByOrder = salesItems
-                .GroupBy(i => i.SalesOrderId)
-                .ToDictionary(g => g.Key, g => g.Select(i => i.ProductId).ToHashSet());
+            var orderIds = orders.Select(o => o.Id).ToHashSet();
+            var outsideDamageRows = await _db.ProductReturnItems
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId.HasValue && orderIds.Contains(r.SalesOrderId.Value)),
+                    item => item.ProductReturnId,
+                    ret => ret.Id,
+                    (item, ret) => new { Item = item, SalesOrderId = ret.SalesOrderId!.Value })
+                .Where(r => r.Item.IsOutsideSalesDamageReturn)
+                .ToListAsync();
+            var outsideDamageProductIds = outsideDamageRows.Select(r => r.Item.ProductId).Distinct().ToList();
+            var outsideDamagePrices = outsideDamageProductIds.Any()
+                ? await _db.Products
+                    .Where(p => outsideDamageProductIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id, p => p.Price)
+                : new Dictionary<Guid, decimal>();
 
-            foreach (var order in orders)
+            foreach (var group in outsideDamageRows.GroupBy(r => r.SalesOrderId))
             {
-                var orderProductIds = productIdsByOrder.GetValueOrDefault(order.Id) ?? new HashSet<Guid>();
-                var reportDateStart = new DateTimeOffset(order.OrderDate.Date, order.OrderDate.Offset);
-                var reportDateEnd = reportDateStart.AddDays(1);
-                var outsideDamageItems = await _db.ProductReturnItems
-                    .Join(_db.ProductReturns.Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd),
-                        item => item.ProductReturnId,
-                        ret => ret.Id,
-                        (item, ret) => item)
-                    .Where(i => i.IsOutsideSalesDamageReturn && !orderProductIds.Contains(i.ProductId))
-                    .ToListAsync();
-                var outsideDamageProductIds = outsideDamageItems.Select(i => i.ProductId).Distinct().ToList();
-                var outsideDamagePrices = outsideDamageProductIds.Any()
-                    ? await _db.Products
-                        .Where(p => outsideDamageProductIds.Contains(p.Id))
-                        .ToDictionaryAsync(p => p.Id, p => p.Price)
-                    : new Dictionary<Guid, decimal>();
-
-                outsideDamageAmounts[order.Id] = outsideDamageItems.Sum(i => GetDamagedReturnQuantity(i) * outsideDamagePrices.GetValueOrDefault(i.ProductId));
+                outsideDamageAmounts[group.Key] = group.Sum(r => GetDamagedReturnQuantity(r.Item) * outsideDamagePrices.GetValueOrDefault(r.Item.ProductId));
             }
 
             return outsideDamageAmounts;
@@ -262,22 +255,44 @@ namespace KTrading.Pages.SalesOrders
                     (item, ret) => item)
                 .Where(i => productIds.Contains(i.ProductId) && !i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
-            var reportDateStart = new DateTimeOffset(order.OrderDate.Date, order.OrderDate.Offset);
-            var reportDateEnd = reportDateStart.AddDays(1);
             var outsideDamageItems = await _db.ProductReturnItems
-                .Join(_db.ProductReturns.Where(r => r.CreatedAt >= reportDateStart && r.CreatedAt < reportDateEnd),
+                .Join(_db.ProductReturns.Where(r => r.SalesOrderId == id),
                     item => item.ProductReturnId,
                     ret => ret.Id,
                     (item, ret) => item)
-                .Where(i => i.IsOutsideSalesDamageReturn && !productIds.Contains(i.ProductId))
+                .Where(i => i.IsOutsideSalesDamageReturn)
                 .ToListAsync();
             var outsideDamageProductIds = outsideDamageItems.Select(i => i.ProductId).Distinct().ToList();
+            var outsideOnlyProductIds = outsideDamageProductIds.Where(productId => !productIds.Contains(productId)).ToList();
+            if (outsideOnlyProductIds.Any())
+            {
+                stocks.AddRange(await _db.Stocks
+                    .Where(s => outsideOnlyProductIds.Contains(s.ProductId))
+                    .ToListAsync());
+                movements.AddRange(await _db.StockMovements
+                    .Where(m => outsideOnlyProductIds.Contains(m.ProductId))
+                    .ToListAsync());
+            }
             var outsideDamagePrices = outsideDamageProductIds.Any()
                 ? await _db.Products
                     .Where(p => outsideDamageProductIds.Contains(p.Id))
                     .ToDictionaryAsync(p => p.Id, p => p.Price)
                 : new Dictionary<Guid, decimal>();
-            var outsideSalesDamageReturn = outsideDamageItems.Sum(i => GetDamagedReturnQuantity(i) * outsideDamagePrices.GetValueOrDefault(i.ProductId));
+            var outsideDamageProducts = outsideDamageProductIds.Any()
+                ? await _db.Products
+                    .Include(p => p.ProductCategory)
+                    .Where(p => outsideDamageProductIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id)
+                : new Dictionary<Guid, Product>();
+            var outsideDamageGroups = outsideDamageItems
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        DamagedQuantity = g.Sum(GetDamagedReturnQuantity),
+                        DamageAmount = g.Sum(i => GetDamagedReturnQuantity(i) * outsideDamagePrices.GetValueOrDefault(i.ProductId))
+                    });
             var itemGroups = items
                 .GroupBy(i => i.ProductId)
                 .Select(g => new
@@ -301,7 +316,11 @@ namespace KTrading.Pages.SalesOrders
             var returnedAmountTotal = itemGroups.Sum(i =>
                 returnGroups.GetValueOrDefault(i.ProductId)?.SalesAdjustmentQuantity * i.UnitPrice ?? 0m);
             var damageAmountTotal = itemGroups.Sum(i =>
-                returnGroups.GetValueOrDefault(i.ProductId)?.DamagedQuantity * i.UnitPrice ?? 0m) + outsideSalesDamageReturn;
+                (returnGroups.GetValueOrDefault(i.ProductId)?.DamagedQuantity * i.UnitPrice ?? 0m)
+                + (outsideDamageGroups.GetValueOrDefault(i.ProductId)?.DamageAmount ?? 0m))
+                + outsideDamageGroups
+                    .Where(g => !productIds.Contains(g.Key))
+                    .Sum(g => g.Value.DamageAmount);
             var reportTotal = Math.Max(order.Total - returnedAmountTotal, 0m);
             var reportDue = Math.Max(order.DueAmount, 0m);
             var reportNet = SalesOrderFinancials.CalculateNetAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting);
@@ -344,13 +363,14 @@ namespace KTrading.Pages.SalesOrders
                 var outs = movements.Where(m => m.ProductId == item.ProductId && m.Quantity < 0).Sum(m => -m.Quantity);
                 var ins = movements.Where(m => m.ProductId == item.ProductId && m.Quantity > 0).Sum(m => m.Quantity);
                 returnGroups.TryGetValue(item.ProductId, out var returnGroup);
+                outsideDamageGroups.TryGetValue(item.ProductId, out var outsideDamageGroup);
                 var returnedQuantity = returnGroup?.ReturnedQuantity ?? 0m;
                 var salesAdjustmentQuantity = returnGroup?.SalesAdjustmentQuantity ?? 0m;
-                var damage = returnGroup?.DamagedQuantity ?? 0m;
+                var damage = (returnGroup?.DamagedQuantity ?? 0m) + (outsideDamageGroup?.DamagedQuantity ?? 0m);
                 var netSoldQuantity = Math.Max(item.SoldQuantity - returnedQuantity, 0m);
                 var netSoldAmount = Math.Max(item.SoldAmount - (salesAdjustmentQuantity * item.UnitPrice), 0m);
                 var stockValue = qty * (product?.Cost ?? 0m);
-                var damageAmount = damage * item.UnitPrice;
+                var damageAmount = ((returnGroup?.DamagedQuantity ?? 0m) * item.UnitPrice) + (outsideDamageGroup?.DamageAmount ?? 0m);
 
                 ws.Cell(row, 1).Value = row - 6;
                 ws.Cell(row, 2).Value = product?.ProductCategory?.Name ?? "Uncategorized";
@@ -366,6 +386,32 @@ namespace KTrading.Pages.SalesOrders
                 ws.Cell(row, 12).Value = stockValue;
                 ws.Cell(row, 13).Value = netSoldAmount;
                 ws.Cell(row, 14).Value = damageAmount;
+                ws.Range(row, 5, row, 14).Style.NumberFormat.Format = "0.00";
+                row++;
+            }
+
+            foreach (var outsideGroup in outsideDamageGroups.Where(g => !productIds.Contains(g.Key)))
+            {
+                outsideDamageProducts.TryGetValue(outsideGroup.Key, out var product);
+                var qty = stocks.FirstOrDefault(s => s.ProductId == outsideGroup.Key)?.Quantity ?? 0m;
+                var outs = movements.Where(m => m.ProductId == outsideGroup.Key && m.Quantity < 0).Sum(m => -m.Quantity);
+                var ins = movements.Where(m => m.ProductId == outsideGroup.Key && m.Quantity > 0).Sum(m => m.Quantity);
+                var stockValue = qty * (product?.Cost ?? 0m);
+
+                ws.Cell(row, 1).Value = row - 6;
+                ws.Cell(row, 2).Value = product?.ProductCategory?.Name ?? "Uncategorized";
+                ws.Cell(row, 3).Value = product?.Name ?? outsideGroup.Key.ToString();
+                ws.Cell(row, 4).Value = product?.SKU ?? string.Empty;
+                ws.Cell(row, 5).Value = qty;
+                ws.Cell(row, 6).Value = outs;
+                ws.Cell(row, 7).Value = ins;
+                ws.Cell(row, 8).Value = outsideGroup.Value.DamagedQuantity;
+                ws.Cell(row, 9).Value = 0;
+                ws.Cell(row, 10).Value = product?.Cost ?? 0m;
+                ws.Cell(row, 11).Value = product?.Price ?? 0m;
+                ws.Cell(row, 12).Value = stockValue;
+                ws.Cell(row, 13).Value = 0;
+                ws.Cell(row, 14).Value = outsideGroup.Value.DamageAmount;
                 ws.Range(row, 5, row, 14).Style.NumberFormat.Format = "0.00";
                 row++;
             }
