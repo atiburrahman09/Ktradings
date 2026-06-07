@@ -360,10 +360,10 @@ namespace KTrading.Pages.SalesOrders
             {
                 products.TryGetValue(item.ProductId, out var product);
                 var qty = stocks.FirstOrDefault(s => s.ProductId == item.ProductId)?.Quantity ?? 0m;
-                var outs = movements.Where(m => m.ProductId == item.ProductId && m.Quantity < 0).Sum(m => -m.Quantity);
-                var ins = movements.Where(m => m.ProductId == item.ProductId && m.Quantity > 0).Sum(m => m.Quantity);
+                var outs = item.SoldQuantity;
                 returnGroups.TryGetValue(item.ProductId, out var returnGroup);
                 outsideDamageGroups.TryGetValue(item.ProductId, out var outsideDamageGroup);
+                var ins = returnGroup?.SalesAdjustmentQuantity ?? 0m;
                 var returnedQuantity = returnGroup?.ReturnedQuantity ?? 0m;
                 var salesAdjustmentQuantity = returnGroup?.SalesAdjustmentQuantity ?? 0m;
                 var damage = (returnGroup?.DamagedQuantity ?? 0m) + (outsideDamageGroup?.DamagedQuantity ?? 0m);
@@ -394,8 +394,8 @@ namespace KTrading.Pages.SalesOrders
             {
                 outsideDamageProducts.TryGetValue(outsideGroup.Key, out var product);
                 var qty = stocks.FirstOrDefault(s => s.ProductId == outsideGroup.Key)?.Quantity ?? 0m;
-                var outs = movements.Where(m => m.ProductId == outsideGroup.Key && m.Quantity < 0).Sum(m => -m.Quantity);
-                var ins = movements.Where(m => m.ProductId == outsideGroup.Key && m.Quantity > 0).Sum(m => m.Quantity);
+                var outs = 0m;
+                var ins = 0m;
                 var stockValue = qty * (product?.Cost ?? 0m);
 
                 ws.Cell(row, 1).Value = row - 6;
@@ -464,7 +464,8 @@ namespace KTrading.Pages.SalesOrders
                 ws.Range(summaryRow + 9, 11, summaryRow + 9, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             }
 
-            var paymentsStartRow = summaryRow + 12;
+            var paymentsStartRow = totalRow + 2;
+
             ws.Cell(paymentsStartRow, 1).Value = "PAYMENTS";
             ws.Cell(paymentsStartRow, 1).Style.Font.Bold = true;
             ws.Cell(paymentsStartRow + 1, 1).Value = "DATE";
