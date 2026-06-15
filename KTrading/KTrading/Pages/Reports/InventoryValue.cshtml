@@ -7,12 +7,7 @@
 <h2>@Model.ReportTitle Report</h2>
 
 <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
-    <a class="btn btn-outline-secondary" asp-page="InventoryValue">All Inventory</a>
-    @foreach (var category in Model.BusinessCategories)
-    {
-        <a class="btn btn-outline-secondary" asp-page="InventoryValue" asp-route-categoryName="@category">@category Products</a>
-    }
-    <a class="btn btn-primary" asp-page="ExportInventoryExcel" asp-route-categoryName="@Model.CategoryName">Export as Excel</a>
+    <a class="btn btn-primary" asp-page="ExportInventoryExcel">Export as Excel</a>
 </div>
 
 @if (!Model.Rows.Any())
@@ -52,5 +47,4 @@ else
             </tr>
         </tfoot>
     </table>
-    <partial name="_Pagination" model="Model.Pager" />
 }

@@ -1,8 +1,7 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using KTrading.Data;
 using KTrading.Models;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 
 namespace KTrading.Pages.Reports
 {
@@ -16,56 +15,38 @@ namespace KTrading.Pages.Reports
         public List<Row> Rows { get; set; } = new();
         public PaginationModel Pager { get; set; } = new();
         public decimal TotalValue { get; set; }
-        public string ReportTitle { get; set; } = "Inventory Value";
-        public IReadOnlyList<string> BusinessCategories { get; } = new[] { "Fresh", "Akij" };
-
-        [BindProperty(SupportsGet = true)]
-        public string? CategoryName { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public int PageNumber { get; set; } = 1;
+        public string ReportTitle { get; set; } = "Inventory Report";
 
         public async Task OnGetAsync()
         {
-            const int pageSize = 10;
-            PageNumber = Math.Max(PageNumber, 1);
+            // Join Stocks to Products and include category so EF does the correct lookups server-side.
+            var query = from s in _db.Stocks
+                        join p in _db.Products.Include(x => x.ProductCategory) on s.ProductId equals p.Id
+                        orderby (p.ProductCategory != null ? p.ProductCategory.Name : "Uncategorized"), p.Name
+                        select new { Product = p, Stock = s };
 
-            ReportTitle = string.IsNullOrWhiteSpace(CategoryName)
-                ? "All Inventory Value"
-                : $"{CategoryName} Products Inventory Value";
+            var items = await query.ToListAsync();
 
-            var productsQuery = _db.Products.Include(p => p.ProductCategory).AsQueryable();
-            if (!string.IsNullOrWhiteSpace(CategoryName))
+            TotalValue = 0m;
+            var rows = items.Select(i =>
             {
-                productsQuery = productsQuery.Where(p => p.ProductCategory != null && p.ProductCategory.Name == CategoryName);
-            }
-
-            var products = await productsQuery
-                .OrderBy(p => p.ProductCategory == null ? "Uncategorized" : p.ProductCategory.Name)
-                .ThenBy(p => p.Name)
-                .ToListAsync();
-            var productIds = products.Select(p => p.Id).ToHashSet();
-            var stocks = await _db.Stocks
-                .ToListAsync();
-            var prodMap = products.ToDictionary(p => p.Id, p => p);
-            var rows = new List<Row>();
-            foreach(var s in stocks.Where(s => productIds.Contains(s.ProductId)))
-            {
-                prodMap.TryGetValue(s.ProductId, out var p);
-                var qty = s.Quantity;
-                var cost = p?.Cost ?? 0m;
+                var qty = i.Stock.Quantity;
+                var cost = i.Product.Cost;
                 var val = qty * cost;
-                rows.Add(new Row { ProductName = p?.Name ?? s.ProductId.ToString(), Category = p?.ProductCategory?.Name ?? "Uncategorized", Quantity = qty, UnitCost = cost, Value = val });
-                TotalValue += val;
-            }
+                return new Row
+                {
+                    ProductName = i.Product.Name,
+                    Category = i.Product.ProductCategory?.Name ?? "Uncategorized",
+                    Quantity = qty,
+                    UnitCost = cost,
+                    Value = val
+                };
+            }).ToList();
 
-            Pager = new PaginationModel { PageNumber = PageNumber, PageSize = pageSize, TotalItems = rows.Count };
-            Rows = rows
-                .OrderBy(r => r.Category)
-                .ThenBy(r => r.ProductName)
-                .Skip((PageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            TotalValue = rows.Sum(r => r.Value);
+
+            Pager = new PaginationModel { PageNumber = 1, PageSize = Math.Max(rows.Count, 1), TotalItems = rows.Count };
+            Rows = rows.OrderBy(r => r.Category).ThenBy(r => r.ProductName).ToList();
         }
     }
 }
