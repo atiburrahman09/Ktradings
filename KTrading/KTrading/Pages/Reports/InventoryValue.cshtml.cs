@@ -1,6 +1,8 @@
 using KTrading.Data;
 using KTrading.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace KTrading.Pages.Reports
@@ -17,13 +19,37 @@ namespace KTrading.Pages.Reports
         public decimal TotalValue { get; set; }
         public string ReportTitle { get; set; } = "Inventory Report";
 
+        [BindProperty(SupportsGet = true)]
+        public Guid? SelectedCategoryId { get; set; }
+
+        public List<SelectListItem> CategoryList { get; set; } = new();
+
         public async Task OnGetAsync()
         {
-            // Join Stocks to Products and include category so EF does the correct lookups server-side.
+            CategoryList = await _db.ProductCategories
+                            .OrderBy(c => c.Name)
+                            .Select(c => new SelectListItem
+                            {
+                                Value = c.Id.ToString(),   // Guid converted to string
+                                Text = c.Name
+                            })
+                            .ToListAsync();
             var query = from s in _db.Stocks
-                        join p in _db.Products.Include(x => x.ProductCategory) on s.ProductId equals p.Id
-                        orderby (p.ProductCategory != null ? p.ProductCategory.Name : "Uncategorized"), p.Name
+                        join p in _db.Products
+                            .Include(x => x.ProductCategory)
+                        on s.ProductId equals p.Id
                         select new { Product = p, Stock = s };
+
+            if (SelectedCategoryId.HasValue)
+            {
+                query = query.Where(x => x.Product.ProductCategoryId == SelectedCategoryId);
+            }
+
+            query = query
+                    .OrderBy(x => x.Product.ProductCategory != null
+                        ? x.Product.ProductCategory.Name
+                        : "Uncategorized")
+                    .ThenBy(x => x.Product.Name);
 
             var items = await query.ToListAsync();
 
@@ -31,7 +57,9 @@ namespace KTrading.Pages.Reports
             var rows = items.Select(i =>
             {
                 var qty = i.Stock.Quantity;
-                var cost = i.Product.Cost;
+                var cost = i.Product.Price > 0
+                    ? i.Product.Price
+                    : i.Product.Cost;
                 var val = qty * cost;
                 return new Row
                 {

@@ -8,6 +8,8 @@ namespace KTrading.Pages.Reports
 {
     public class ExportInventoryExcelModel : PageModel
     {
+        [BindProperty(SupportsGet = true)]
+        public Guid? CategoryId { get; set; }
         private readonly ApplicationDbContext _db;
 
         public ExportInventoryExcelModel(ApplicationDbContext db)
@@ -18,7 +20,14 @@ namespace KTrading.Pages.Reports
         public async Task<IActionResult> OnGetAsync()
         {
             // Load products WITHOUT Include(p => p.ProductCategory)
-            var products = await _db.Products
+            var query = _db.Products.AsQueryable();
+
+            if (CategoryId.HasValue)
+            {
+                query = query.Where(p => p.ProductCategoryId == CategoryId);
+            }
+
+            var products = await query
                 .OrderBy(p => p.Name)
                 .ToListAsync();
 
