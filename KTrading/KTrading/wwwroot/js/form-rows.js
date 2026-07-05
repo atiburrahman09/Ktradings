@@ -117,7 +117,21 @@
             tbody.appendChild(clone);
             updateIndexes(tbody, 'tr:not(.template)');
             filterProductsForRow(clone, false);
+            bindRemoveButtonsForSalesTable(tbody);
         });
+
+        function bindRemoveButtonsForSalesTable(tbody){
+            var removes = tbody.querySelectorAll('.remove-row');
+            removes.forEach(function(btn){
+                btn.onclick = function(){
+                    var row = btn.closest('tr');
+                    if(!row) return;
+                    row.remove();
+                    updateIndexes(tbody, 'tr:not(.template)');
+                    if(window.computeAll) window.computeAll();
+                }
+            });
+        }
 
         function updateProductPrice(row){
             var productSelect = row.querySelector('.product-select');
@@ -202,6 +216,7 @@
         }
 
         filterAllProductRows();
+        bindRemoveButtonsForSalesTable(tbody);
     }
 
     function syncCategoryFromSelectedProduct(row){

@@ -30,6 +30,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/Login";
+    // Keep users signed in for a long period to avoid unexpected auto-logouts.
+    options.ExpireTimeSpan = TimeSpan.FromDays(365);
+    options.SlidingExpiration = true;
 });
 
 // Require authentication for all Razor Pages by default, allow anonymous for login/register
