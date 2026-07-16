@@ -1,11 +1,11 @@
+using KTrading.Data;
 using KTrading.Models;
 using KTrading.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using KTrading.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 
 namespace KTrading.Pages.SalesOrders
 {
@@ -61,7 +61,7 @@ namespace KTrading.Pages.SalesOrders
 
             // compute totals
             decimal subtotal = 0;
-            foreach(var it in Items)
+            foreach (var it in Items)
             {
                 it.Id = Guid.NewGuid();
                 it.SalesOrderId = SalesOrder.Id;
@@ -70,13 +70,13 @@ namespace KTrading.Pages.SalesOrders
 
                 // create stock movement and decrease stock
                 var sm = new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = -it.Quantity, MovementType = "OUT", ReferenceId = SalesOrder.Id, Note = "Sale", CreatedAt = DateTimeOffset.UtcNow };
-                _db.StockMovements.Add(sm);
+                _ = _db.StockMovements.Add(sm);
 
                 var stock = await _db.Stocks.FirstOrDefaultAsync(s => s.ProductId == it.ProductId);
                 if (stock == null)
                 {
                     stock = new Stock { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = 0, UpdatedAt = DateTimeOffset.UtcNow };
-                    _db.Stocks.Add(stock);
+                    _ = _db.Stocks.Add(stock);
                 }
                 stock.Quantity -= it.Quantity;
                 stock.UpdatedAt = DateTimeOffset.UtcNow;
@@ -88,15 +88,15 @@ namespace KTrading.Pages.SalesOrders
             SalesOrder.Khajna = 0;
             SalesOrder.DsrSalary = 0;
             if (SalesOrder.PaidAmount < 0) SalesOrder.PaidAmount = 0;
-            var payableAmount = SalesOrderFinancials.CalculateNetAmount(SalesOrder.Total, SalesOrder.Commission, SalesOrder.DsrSalary, 0m, SalesOrder.OtherCosting);
+            var payableAmount = SalesOrderFinancials.CalculateNetAmount(SalesOrder.Total, SalesOrder.Commission, SalesOrder.DsrSalary, 0m, SalesOrder.OtherCosting, SalesOrder.Khajna);
             if (SalesOrder.PaidAmount > payableAmount) SalesOrder.PaidAmount = payableAmount;
             SalesOrder.DueAmount = Math.Max(payableAmount - SalesOrder.PaidAmount, 0m);
 
-            _db.SalesOrders.Add(SalesOrder);
-            if(Items.Any()) _db.SalesOrderItems.AddRange(Items);
+            _ = _db.SalesOrders.Add(SalesOrder);
+            if (Items.Any()) _db.SalesOrderItems.AddRange(Items);
             if (SalesOrder.PaidAmount > 0)
             {
-                _db.Payments.Add(new Payment
+                _ = _db.Payments.Add(new Payment
                 {
                     Id = Guid.NewGuid(),
                     SalesOrderId = SalesOrder.Id,
@@ -105,7 +105,7 @@ namespace KTrading.Pages.SalesOrders
                     Reference = $"Initial payment for {SalesOrder.OrderNumber}"
                 });
             }
-            await _db.SaveChangesAsync();
+            _ = await _db.SaveChangesAsync();
 
             return RedirectToPage("Index");
         }

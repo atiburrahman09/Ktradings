@@ -1,8 +1,8 @@
+using KTrading.Data;
 using KTrading.Models;
+using KTrading.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using KTrading.Data;
-using KTrading.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,14 +36,16 @@ namespace KTrading.Pages.SalesOrders
             Order?.Commission ?? 0m,
             Order?.DsrSalary ?? 0m,
             DamageAmount,
-            Order?.OtherCosting ?? 0m);
+            Order?.OtherCosting ?? 0m,
+            Order?.Khajna ?? 0);
         public decimal DisplayPaidAmount => SalesOrderFinancials.CalculatePaidAmount(
             AdjustedTotal,
             Order?.Commission ?? 0m,
             Order?.DsrSalary ?? 0m,
             DamageAmount,
             Order?.OtherCosting ?? 0m,
-            AdjustedDue);
+            AdjustedDue,
+            Order?.Khajna ?? 0);
 
         [BindProperty]
         public decimal KhajnaAmount { get; set; }
@@ -85,7 +87,7 @@ namespace KTrading.Pages.SalesOrders
             if (KhajnaAmount < 0)
             {
                 ModelState.AddModelError(nameof(KhajnaAmount), "Khajna cannot be negative.");
-                await LoadOrderAsync(id);
+                _ = await LoadOrderAsync(id);
                 DsrSalaryAmount = Order!.DsrSalary;
                 OtherCostingAmount = Order.OtherCosting;
                 OtherCostingNote = Order.OtherCostingNote;
@@ -94,7 +96,7 @@ namespace KTrading.Pages.SalesOrders
 
             order.Khajna = KhajnaAmount;
             order.UpdatedAt = DateTimeOffset.UtcNow;
-            await _db.SaveChangesAsync();
+            _ = await _db.SaveChangesAsync();
 
             return RedirectToPage(new { id });
         }
@@ -107,7 +109,7 @@ namespace KTrading.Pages.SalesOrders
             if (DsrSalaryAmount < 0)
             {
                 ModelState.AddModelError(nameof(DsrSalaryAmount), "DSR Salary cannot be negative.");
-                await LoadOrderAsync(id);
+                _ = await LoadOrderAsync(id);
                 KhajnaAmount = Order!.Khajna;
                 OtherCostingAmount = Order.OtherCosting;
                 OtherCostingNote = Order.OtherCostingNote;
@@ -117,7 +119,7 @@ namespace KTrading.Pages.SalesOrders
             order.DsrSalary = DsrSalaryAmount;
             order.UpdatedAt = DateTimeOffset.UtcNow;
             await RecalculatePaidAndInitialPaymentAsync(order);
-            await _db.SaveChangesAsync();
+            _ = await _db.SaveChangesAsync();
 
             return RedirectToPage(new { id });
         }
@@ -139,7 +141,7 @@ namespace KTrading.Pages.SalesOrders
 
             if (!ModelState.IsValid)
             {
-                await LoadOrderAsync(id);
+                _ = await LoadOrderAsync(id);
                 KhajnaAmount = Order!.Khajna;
                 DsrSalaryAmount = Order.DsrSalary;
                 return Page();
@@ -149,7 +151,7 @@ namespace KTrading.Pages.SalesOrders
             order.OtherCostingNote = string.IsNullOrWhiteSpace(OtherCostingNote) ? null : OtherCostingNote.Trim();
             order.UpdatedAt = DateTimeOffset.UtcNow;
             await RecalculatePaidAndInitialPaymentAsync(order);
-            await _db.SaveChangesAsync();
+            _ = await _db.SaveChangesAsync();
 
             return RedirectToPage(new { id });
         }
@@ -164,7 +166,7 @@ namespace KTrading.Pages.SalesOrders
                 ModelState.AddModelError(nameof(CollectionAmount), "Collection amount must be greater than zero.");
             }
 
-            var returnedAmount = await CalculateReturnedAmountAsync(id);
+            _ = await CalculateReturnedAmountAsync(id);
             var adjustedDue = Math.Max(order.DueAmount, 0m);
 
             if (CollectionAmount > adjustedDue)
@@ -174,7 +176,7 @@ namespace KTrading.Pages.SalesOrders
 
             if (!ModelState.IsValid)
             {
-                await LoadOrderAsync(id);
+                _ = await LoadOrderAsync(id);
                 KhajnaAmount = Order!.Khajna;
                 DsrSalaryAmount = Order.DsrSalary;
                 OtherCostingAmount = Order.OtherCosting;
@@ -182,7 +184,7 @@ namespace KTrading.Pages.SalesOrders
                 return Page();
             }
 
-            _db.Payments.Add(new Payment
+            _ = _db.Payments.Add(new Payment
             {
                 Id = Guid.NewGuid(),
                 SalesOrderId = order.Id,
@@ -198,7 +200,7 @@ namespace KTrading.Pages.SalesOrders
             order.DueAmount = Math.Max(order.DueAmount - CollectionAmount, 0m);
             order.UpdatedAt = DateTimeOffset.UtcNow;
 
-            await _db.SaveChangesAsync();
+            _ = await _db.SaveChangesAsync();
             return RedirectToPage(new { id });
         }
 
@@ -260,6 +262,7 @@ namespace KTrading.Pages.SalesOrders
                 order.DsrSalary,
                 damageAmount,
                 order.OtherCosting,
+                order.Khajna,
                 Math.Max(order.DueAmount, 0m));
 
             await ReconcileInitialPaymentAsync(order);
@@ -280,7 +283,7 @@ namespace KTrading.Pages.SalesOrders
             {
                 if (initialPayment is not null)
                 {
-                    _db.Payments.Remove(initialPayment);
+                    _ = _db.Payments.Remove(initialPayment);
                 }
 
                 return;
@@ -288,7 +291,7 @@ namespace KTrading.Pages.SalesOrders
 
             if (initialPayment is null)
             {
-                _db.Payments.Add(new Payment
+                _ = _db.Payments.Add(new Payment
                 {
                     Id = Guid.NewGuid(),
                     SalesOrderId = order.Id,

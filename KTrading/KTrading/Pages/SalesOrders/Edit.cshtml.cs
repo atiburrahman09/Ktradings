@@ -108,8 +108,8 @@ namespace KTrading.Pages.SalesOrders
                 item.LineTotal = item.Quantity * item.UnitPrice;
                 subtotal += item.LineTotal;
 
-                _db.SalesOrderItems.Add(item);
-                _db.StockMovements.Add(new StockMovement
+                _ = _db.SalesOrderItems.Add(item);
+                _ = _db.StockMovements.Add(new StockMovement
                 {
                     Id = Guid.NewGuid(),
                     ProductId = item.ProductId,
@@ -143,13 +143,14 @@ namespace KTrading.Pages.SalesOrders
                 existingOrder.DsrSalary,
                 damageAmount,
                 existingOrder.OtherCosting,
+                existingOrder.Khajna,
                 DueAmountInput);
             existingOrder.DueAmount = Math.Max(DueAmountInput, 0m);
             existingOrder.UpdatedAt = DateTimeOffset.UtcNow;
 
             await ReconcileInitialPaymentAsync(existingOrder);
 
-            await _db.SaveChangesAsync();
+            _ = await _db.SaveChangesAsync();
             await transaction.CommitAsync();
 
             return RedirectToPage("Details", new { id });
@@ -307,7 +308,8 @@ namespace KTrading.Pages.SalesOrders
                 Math.Max(SalesOrder.Commission, 0m),
                 existingOrder?.DsrSalary ?? 0m,
                 damageAmount,
-                existingOrder?.OtherCosting ?? 0m);
+                existingOrder?.OtherCosting ?? 0m,
+                existingOrder?.Khajna ?? 0m);
             if (DueAmountInput > payableAmount)
             {
                 ModelState.AddModelError(nameof(DueAmountInput), $"Due amount cannot be greater than payable amount ({payableAmount:N2}).");
@@ -324,6 +326,7 @@ namespace KTrading.Pages.SalesOrders
                 existingOrder?.DsrSalary ?? 0m,
                 damageAmount,
                 existingOrder?.OtherCosting ?? 0m,
+                existingOrder?.Khajna ?? 0m,
                 DueAmountInput);
 
             if (paidAmount < nonInitialPayments)
@@ -347,7 +350,7 @@ namespace KTrading.Pages.SalesOrders
             {
                 if (initialPayment is not null)
                 {
-                    _db.Payments.Remove(initialPayment);
+                    _ = _db.Payments.Remove(initialPayment);
                 }
 
                 return;
@@ -355,7 +358,7 @@ namespace KTrading.Pages.SalesOrders
 
             if (initialPayment is null)
             {
-                _db.Payments.Add(new Payment
+                _ = _db.Payments.Add(new Payment
                 {
                     Id = Guid.NewGuid(),
                     SalesOrderId = order.Id,
@@ -386,7 +389,7 @@ namespace KTrading.Pages.SalesOrders
                 Quantity = 0,
                 UpdatedAt = DateTimeOffset.UtcNow
             };
-            _db.Stocks.Add(stock);
+            _ = _db.Stocks.Add(stock);
             return stock;
         }
 

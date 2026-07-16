@@ -1,12 +1,12 @@
 using ClosedXML.Excel;
+using KTrading.Data;
 using KTrading.Models;
-using System.Linq.Expressions;
+using KTrading.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using KTrading.Data;
-using KTrading.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace KTrading.Pages.SalesOrders
 {
@@ -123,7 +123,8 @@ namespace KTrading.Pages.SalesOrders
                 o.DsrSalary,
                 DamageAmounts[o.Id],
                 o.OtherCosting,
-                AdjustedDues[o.Id]));
+                AdjustedDues[o.Id], o.Khajna)
+            );
 
             if (!orderIds.Any())
             {
@@ -189,7 +190,7 @@ namespace KTrading.Pages.SalesOrders
                     order.DsrSalary,
                     DamageAmounts[order.Id],
                     order.OtherCosting,
-                    AdjustedDues[order.Id]);
+                    AdjustedDues[order.Id], order.Khajna);
             }
         }
 
@@ -323,8 +324,8 @@ namespace KTrading.Pages.SalesOrders
                     .Sum(g => g.Value.DamageAmount);
             var reportTotal = Math.Max(order.Total - returnedAmountTotal, 0m);
             var reportDue = Math.Max(order.DueAmount, 0m);
-            var reportNet = SalesOrderFinancials.CalculateNetAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting);
-            var reportPaid = SalesOrderFinancials.CalculatePaidAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting, reportDue);
+            var reportNet = SalesOrderFinancials.CalculateNetAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting, order.Khajna);
+            var reportPaid = SalesOrderFinancials.CalculatePaidAmount(reportTotal, order.Commission, order.DsrSalary, damageAmountTotal, order.OtherCosting, reportDue, order.Khajna);
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Sales Order");
@@ -358,11 +359,11 @@ namespace KTrading.Pages.SalesOrders
             var row = 7;
             foreach (var item in itemGroups)
             {
-                products.TryGetValue(item.ProductId, out var product);
+                _ = products.TryGetValue(item.ProductId, out var product);
                 var qty = stocks.FirstOrDefault(s => s.ProductId == item.ProductId)?.Quantity ?? 0m;
                 var outs = item.SoldQuantity;
-                returnGroups.TryGetValue(item.ProductId, out var returnGroup);
-                outsideDamageGroups.TryGetValue(item.ProductId, out var outsideDamageGroup);
+                _ = returnGroups.TryGetValue(item.ProductId, out var returnGroup);
+                _ = outsideDamageGroups.TryGetValue(item.ProductId, out var outsideDamageGroup);
                 var ins = returnGroup?.SalesAdjustmentQuantity ?? 0m;
                 var returnedQuantity = returnGroup?.ReturnedQuantity ?? 0m;
                 var salesAdjustmentQuantity = returnGroup?.SalesAdjustmentQuantity ?? 0m;
@@ -392,7 +393,7 @@ namespace KTrading.Pages.SalesOrders
 
             foreach (var outsideGroup in outsideDamageGroups.Where(g => !productIds.Contains(g.Key)))
             {
-                outsideDamageProducts.TryGetValue(outsideGroup.Key, out var product);
+                _ = outsideDamageProducts.TryGetValue(outsideGroup.Key, out var product);
                 var qty = stocks.FirstOrDefault(s => s.ProductId == outsideGroup.Key)?.Quantity ?? 0m;
                 var outs = 0m;
                 var ins = 0m;
@@ -418,7 +419,7 @@ namespace KTrading.Pages.SalesOrders
 
             var totalRow = row;
             ws.Cell(totalRow, 1).Value = "TOTAL";
-            ws.Range(totalRow, 1, totalRow, 4).Merge();
+            _ = ws.Range(totalRow, 1, totalRow, 4).Merge();
             ws.Cell(totalRow, 1).Style.Font.Bold = true;
             ws.Cell(totalRow, 5).FormulaA1 = $"SUM(E7:E{row - 1})";
             ws.Cell(totalRow, 6).FormulaA1 = $"SUM(F7:F{row - 1})";
@@ -460,7 +461,7 @@ namespace KTrading.Pages.SalesOrders
                 ws.Cell(summaryRow + 9, 11).Value = "Other Costing Note";
                 ws.Cell(summaryRow + 9, 11).Style.Font.Bold = true;
                 ws.Cell(summaryRow + 9, 12).Value = order.OtherCostingNote;
-                ws.Range(summaryRow + 9, 12, summaryRow + 9, 13).Merge();
+                _ = ws.Range(summaryRow + 9, 12, summaryRow + 9, 13).Merge();
                 ws.Range(summaryRow + 9, 11, summaryRow + 9, 13).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             }
 
@@ -494,11 +495,11 @@ namespace KTrading.Pages.SalesOrders
                 paymentRow++;
             }
 
-            ws.Columns().AdjustToContents();
+            _ = ws.Columns().AdjustToContents();
 
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
-            ms.Seek(0, SeekOrigin.Begin);
+            _ = ms.Seek(0, SeekOrigin.Begin);
 
             var safeOrderNumber = string.Join("_", order.OrderNumber.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
             var fileName = $"SalesOrder_{safeOrderNumber}_{DateTime.UtcNow:yyyyMMdd}.xlsx";
@@ -579,10 +580,10 @@ namespace KTrading.Pages.SalesOrders
             _db.SalesOrderItems.RemoveRange(items);
             if (order is not null)
             {
-                _db.SalesOrders.Remove(order);
+                _ = _db.SalesOrders.Remove(order);
             }
 
-            await _db.SaveChangesAsync();
+            _ = await _db.SaveChangesAsync();
         }
 
         private async Task ApplyStockDeltaAsync(Guid productId, decimal quantityDelta)
@@ -602,7 +603,7 @@ namespace KTrading.Pages.SalesOrders
                     Quantity = 0m,
                     UpdatedAt = DateTimeOffset.UtcNow
                 };
-                _db.Stocks.Add(stock);
+                _ = _db.Stocks.Add(stock);
             }
 
             stock.Quantity += quantityDelta;
