@@ -30,19 +30,24 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/Login";
-    // Keep users signed in for a long period to avoid unexpected auto-logouts.
-    options.ExpireTimeSpan = TimeSpan.FromDays(365);
-    options.SlidingExpiration = true;
+
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = false;
+
+});
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    // Don't force frequent security stamp validation (set very long interval)
+    options.ValidationInterval = TimeSpan.FromDays(3650);
 });
 
-// Require authentication for all Razor Pages by default, allow anonymous for login/register
 builder.Services.AddRazorPages(options =>
 {
     // Protect entire site
-    options.Conventions.AuthorizeFolder("/");
+    _ = options.Conventions.AuthorizeFolder("/");
 
     // Allow anonymous to login/register pages we provide
-    options.Conventions.AllowAnonymousToPage("/Account/Login");
+    _ = options.Conventions.AllowAnonymousToPage("/Account/Login");
 
     // Keep unauthenticated users on the custom login page.
 });
@@ -61,6 +66,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
 });
 
+
+
 var app = builder.Build();
 
 // Ensure database exists before handling requests
@@ -77,7 +84,7 @@ using (var scope = app.Services.CreateScope())
         }
         catch
         {
-            db.Database.EnsureCreated();
+            _ = db.Database.EnsureCreated();
         }
 
         // Seed initial data
@@ -101,8 +108,8 @@ using (var scope = app.Services.CreateScope())
 // Pipeline
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    _ = app.UseExceptionHandler("/Home/Error");
+    _ = app.UseHsts();
 }
 
 app.UseHttpsRedirection();

@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authentication;
 
 namespace KTrading.Pages.Account
 {
@@ -40,16 +41,32 @@ namespace KTrading.Pages.Account
         {
             if (!ModelState.IsValid) return Page();
 
-            // Force persistent cookie so the user remains signed in until they explicitly sign out.
-            // If you prefer to respect the checkbox, replace the 'true' below with Input.RememberMe.
-            var res = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, true, lockoutOnFailure: false);
-            if (res.Succeeded)
+            // Find user and validate password so we can pass AuthenticationProperties
+            var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+            if (user == null)
             {
-                if (!string.IsNullOrEmpty(returnUrl)) return LocalRedirect(returnUrl);
-                return RedirectToPage("/Index");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
             }
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-            return Page();
+
+            var check = await _signInManager.CheckPasswordSignInAsync(user, Input.Password, lockoutOnFailure: false);
+            if (!check.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
+
+            // Create persistent cookie that expires far in the future
+            var props = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddYears(10)
+            };
+
+            await _signInManager.SignInAsync(user, props);
+
+            if (!string.IsNullOrEmpty(returnUrl)) return LocalRedirect(returnUrl);
+            return RedirectToPage("/Index");
         }
     }
 }
