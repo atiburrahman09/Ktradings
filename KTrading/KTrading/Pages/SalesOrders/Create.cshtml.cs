@@ -29,6 +29,7 @@ namespace KTrading.Pages.SalesOrders
         public IEnumerable<SelectListItem> SalesOfficerList { get; set; } = Array.Empty<SelectListItem>();
         public IEnumerable<SelectListItem> ProductCategoryList { get; set; } = Array.Empty<SelectListItem>();
         public List<KTrading.Models.Product> ProductsFull { get; set; } = new();
+        public List<ProductUnit> ProductUnits { get; set; } = new();
         public Dictionary<Guid, decimal> ProductStockMap { get; set; } = new();
 
         public async Task OnGetAsync()
@@ -44,6 +45,7 @@ namespace KTrading.Pages.SalesOrders
                 return Page();
             }
 
+            await ResolveUnitsAsync();
             ValidateItems();
             if (ModelState.IsValid)
             {
@@ -69,7 +71,7 @@ namespace KTrading.Pages.SalesOrders
                 subtotal += it.LineTotal;
 
                 // create stock movement and decrease stock
-                var sm = new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = -it.Quantity, MovementType = "OUT", ReferenceId = SalesOrder.Id, Note = "Sale", CreatedAt = DateTimeOffset.UtcNow };
+                var sm = new StockMovement { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = -it.BaseQuantity, EnteredQuantity = it.Quantity, ProductUnitId = it.ProductUnitId, UnitName = it.UnitName, ConversionFactor = it.ConversionFactor, MovementType = "OUT", ReferenceId = SalesOrder.Id, Note = "Sale", CreatedAt = DateTimeOffset.UtcNow };
                 _ = _db.StockMovements.Add(sm);
 
                 var stock = await _db.Stocks.FirstOrDefaultAsync(s => s.ProductId == it.ProductId);
@@ -78,7 +80,7 @@ namespace KTrading.Pages.SalesOrders
                     stock = new Stock { Id = Guid.NewGuid(), ProductId = it.ProductId, Quantity = 0, UpdatedAt = DateTimeOffset.UtcNow };
                     _ = _db.Stocks.Add(stock);
                 }
-                stock.Quantity -= it.Quantity;
+                stock.Quantity -= it.BaseQuantity;
                 stock.UpdatedAt = DateTimeOffset.UtcNow;
             }
             SalesOrder.Subtotal = subtotal;
@@ -136,7 +138,7 @@ namespace KTrading.Pages.SalesOrders
         {
             var requestedByProduct = Items
                 .GroupBy(i => i.ProductId)
-                .ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+                .ToDictionary(g => g.Key, g => g.Sum(i => i.BaseQuantity));
 
             var productIds = requestedByProduct.Keys.ToList();
             var productNames = await _db.Products
@@ -175,7 +177,41 @@ namespace KTrading.Pages.SalesOrders
             ProductsFull = await _db.Products
                 .OrderBy(p => p.Name)
                 .ToListAsync();
+            ProductUnits = await _db.ProductUnits
+                .Where(u => u.IsActive)
+                .OrderBy(u => u.IsBaseUnit ? 0 : 1).ThenBy(u => u.Name)
+                .ToListAsync();
             ProductStockMap = await _db.Stocks.ToDictionaryAsync(s => s.ProductId, s => s.Quantity);
+        }
+
+        private async Task ResolveUnitsAsync()
+        {
+            var unitIds = Items.Where(i => i.ProductUnitId.HasValue).Select(i => i.ProductUnitId!.Value).Distinct().ToList();
+            var units = await _db.ProductUnits.Where(u => unitIds.Contains(u.Id) && u.IsActive)
+                .ToDictionaryAsync(u => u.Id);
+            var products = await _db.Products.Where(p => Items.Select(i => i.ProductId).Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id);
+
+            for (var index = 0; index < Items.Count; index++)
+            {
+                var item = Items[index];
+                if (item.ProductUnitId.HasValue)
+                {
+                    if (!units.TryGetValue(item.ProductUnitId.Value, out var unit) || unit.ProductId != item.ProductId)
+                    {
+                        ModelState.AddModelError($"Items[{index}].ProductUnitId", "Select a valid unit for this product.");
+                        continue;
+                    }
+                    item.UnitName = unit.Name;
+                    item.ConversionFactor = unit.ConversionFactor;
+                }
+                else
+                {
+                    item.UnitName = products.GetValueOrDefault(item.ProductId)?.Unit;
+                    item.ConversionFactor = 1m;
+                }
+                item.BaseQuantity = item.Quantity * item.ConversionFactor;
+            }
         }
     }
 }

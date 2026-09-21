@@ -81,7 +81,7 @@ namespace KTrading.Pages.Reports
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
                     g => g.Key,
-                    g => Math.Max(g.Sum(i => i.Quantity) - returnedQuantityByProduct.GetValueOrDefault(g.Key), 0m));
+                    g => Math.Max(g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity) - returnedQuantityByProduct.GetValueOrDefault(g.Key), 0m));
 
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Latest Stock");

@@ -143,7 +143,7 @@ namespace KTrading.Pages.SalesOrders
                 .GroupBy(i => new { i.SalesOrderId, i.ProductId })
                 .ToDictionary(
                     g => (g.Key.SalesOrderId, g.Key.ProductId),
-                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+                    g => g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity));
             var returnedAmounts = new Dictionary<Guid, decimal>();
             var damageAmounts = new Dictionary<Guid, decimal>();
 
@@ -630,7 +630,7 @@ namespace KTrading.Pages.SalesOrders
 
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
-            return Math.Max(item.Quantity, 0m);
+            return Math.Max(item.Quantity, 0m) + Math.Max(item.DamagedQuantity, 0m);
         }
 
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)

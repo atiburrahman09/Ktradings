@@ -216,25 +216,16 @@ namespace KTrading.Pages.SalesOrders
             }
             Items = await _db.SalesOrderItems.Where(i => i.SalesOrderId == id).ToListAsync();
             var salesAdjustmentQuantityByProduct = await GetSalesAdjustmentQuantitiesAsync(id);
-            DisplayItems = Items
-                .GroupBy(i => i.ProductId)
-                .Select(g =>
-                {
-                    var soldQuantity = g.Sum(i => i.Quantity);
-                    var soldAmount = g.Sum(i => i.LineTotal);
-                    var unitPrice = soldQuantity == 0 ? 0 : soldAmount / soldQuantity;
-                    var salesAdjustmentQuantity = salesAdjustmentQuantityByProduct.GetValueOrDefault(g.Key);
-
-                    return new SalesOrderItemDisplay
-                    {
-                        ProductId = g.Key,
-                        Quantity = Math.Max(soldQuantity - salesAdjustmentQuantity, 0m),
-                        UnitPrice = unitPrice,
-                        LineTotal = Math.Max(soldAmount - (salesAdjustmentQuantity * unitPrice), 0m)
-                    };
-                })
-                .OrderBy(i => i.ProductId)
-                .ToList();
+            var remainingAdjustments = new Dictionary<Guid, decimal>(salesAdjustmentQuantityByProduct);
+            DisplayItems = Items.Select(item =>
+            {
+                var factor = item.ConversionFactor <= 0 ? 1m : item.ConversionFactor;
+                var availableBase = item.BaseQuantity > 0 ? item.BaseQuantity : item.Quantity * factor;
+                var adjustment = Math.Min(availableBase, remainingAdjustments.GetValueOrDefault(item.ProductId));
+                remainingAdjustments[item.ProductId] = Math.Max(remainingAdjustments.GetValueOrDefault(item.ProductId) - adjustment, 0m);
+                var quantity = Math.Max(item.Quantity - (adjustment / factor), 0m);
+                return new SalesOrderItemDisplay { ProductId = item.ProductId, UnitName = item.UnitName, Quantity = quantity, UnitPrice = item.UnitPrice, LineTotal = quantity * item.UnitPrice };
+            }).ToList();
             Payments = await _db.Payments.Where(p => p.SalesOrderId == id).OrderBy(p => p.PaymentDate).ToListAsync();
             PaymentMethodNames = await _db.PaymentMethods.ToDictionaryAsync(m => m.Id, m => m.Name);
             PaymentMethodList = PaymentMethodNames.Select(m => new SelectListItem(m.Value, m.Key.ToString())).ToList();
@@ -340,7 +331,7 @@ namespace KTrading.Pages.SalesOrders
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+                    g => g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity));
             var returnItems = await _db.ProductReturnItems
                 .Join(_db.ProductReturns.Where(r => r.SalesOrderId == salesOrderId),
                     item => item.ProductReturnId,
@@ -384,7 +375,7 @@ namespace KTrading.Pages.SalesOrders
 
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
-            return Math.Max(item.Quantity, 0m);
+            return Math.Max(item.Quantity, 0m) + Math.Max(item.DamagedQuantity, 0m);
         }
 
         private async Task<decimal> CalculateDamageAmountAsync(Guid salesOrderId)
@@ -402,7 +393,7 @@ namespace KTrading.Pages.SalesOrders
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+                    g => g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity));
             var returnItems = await _db.ProductReturnItems
                 .Join(_db.ProductReturns.Where(r => r.SalesOrderId == salesOrderId),
                     item => item.ProductReturnId,
@@ -447,6 +438,7 @@ namespace KTrading.Pages.SalesOrders
             public decimal Quantity { get; set; }
             public decimal UnitPrice { get; set; }
             public decimal LineTotal { get; set; }
+            public string? UnitName { get; set; }
         }
 
         public class PaymentDisplay

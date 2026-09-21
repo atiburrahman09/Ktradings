@@ -36,5 +36,7 @@ namespace KTrading.Models
         // New relationship to category
         public Guid? ProductCategoryId { get; set; }
         public ProductCategory? ProductCategory { get; set; }
+
+        public ICollection<ProductUnit> ProductUnits { get; set; } = new List<ProductUnit>();
     }
 }

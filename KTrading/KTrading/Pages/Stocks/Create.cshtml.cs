@@ -23,6 +23,7 @@ namespace KTrading.Pages.Stocks
         public StockInInput Input { get; set; } = new();
 
         public IEnumerable<SelectListItem> ProductList { get; set; } = Array.Empty<SelectListItem>();
+        public List<ProductUnit> ProductUnits { get; set; } = new();
 
         public async Task OnGetAsync()
         {
@@ -45,6 +46,19 @@ namespace KTrading.Pages.Stocks
                 return Page();
             }
 
+            ProductUnit? selectedUnit = null;
+            if (Input.ProductUnitId.HasValue)
+            {
+                selectedUnit = await _db.ProductUnits.FirstOrDefaultAsync(u => u.Id == Input.ProductUnitId && u.ProductId == Input.ProductId && u.IsActive);
+                if (selectedUnit is null)
+                {
+                    ModelState.AddModelError(nameof(Input.ProductUnitId), "Select a valid unit for this product.");
+                    await LoadProductsAsync();
+                    return Page();
+                }
+            }
+            var factor = selectedUnit?.ConversionFactor ?? 1m;
+            var baseQuantity = Input.Quantity * factor;
             var now = DateTimeOffset.UtcNow;
             var stock = await _db.Stocks.FirstOrDefaultAsync(s => s.ProductId == Input.ProductId);
 
@@ -54,14 +68,14 @@ namespace KTrading.Pages.Stocks
                 {
                     Id = Guid.NewGuid(),
                     ProductId = Input.ProductId,
-                    Quantity = Input.Quantity,
+                    Quantity = baseQuantity,
                     UpdatedAt = now
                 };
                 _db.Stocks.Add(stock);
             }
             else
             {
-                stock.Quantity += Input.Quantity;
+                stock.Quantity += baseQuantity;
                 stock.UpdatedAt = now;
             }
 
@@ -69,7 +83,11 @@ namespace KTrading.Pages.Stocks
             {
                 Id = Guid.NewGuid(),
                 ProductId = Input.ProductId,
-                Quantity = Input.Quantity,
+                Quantity = baseQuantity,
+                EnteredQuantity = Input.Quantity,
+                ProductUnitId = selectedUnit?.Id,
+                UnitName = selectedUnit?.Name,
+                ConversionFactor = factor,
                 MovementType = "IN",
                 ReferenceId = stock.Id,
                 Note = string.IsNullOrWhiteSpace(Input.Note) ? "Product in" : Input.Note.Trim(),
@@ -89,6 +107,8 @@ namespace KTrading.Pages.Stocks
                     string.IsNullOrWhiteSpace(p.SKU) ? p.Name : $"{p.Name} ({p.SKU})",
                     p.Id.ToString()))
                 .ToListAsync();
+            ProductUnits = await _db.ProductUnits.Where(u => u.IsActive)
+                .OrderBy(u => u.IsBaseUnit ? 0 : 1).ThenBy(u => u.Name).ToListAsync();
         }
 
         public class StockInInput
@@ -98,6 +118,8 @@ namespace KTrading.Pages.Stocks
 
             [Range(typeof(decimal), "0.0001", "999999999", ErrorMessage = "Quantity must be greater than zero.")]
             public decimal Quantity { get; set; }
+
+            public Guid? ProductUnitId { get; set; }
 
             [MaxLength(1000)]
             public string? Note { get; set; }

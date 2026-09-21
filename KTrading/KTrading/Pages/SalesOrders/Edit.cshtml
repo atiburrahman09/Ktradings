@@ -52,9 +52,11 @@
             <table class="table table-sm" id="itemsTable">
                 <thead>
                     <tr>
+                        <th style="width:50px">SL</th>
                         <th style="width:22%">Category</th>
                         <th style="width:30%">Product</th>
-                        <th style="width:13%">Quantity</th>
+                        <th style="width:13%">Unit</th>
+                        <th style="width:11%">Quantity</th>
                         <th style="width:13%">Unit Price</th>
                         <th style="width:13%">Line Total</th>
                         <th></th>
@@ -62,6 +64,7 @@
                 </thead>
                 <tbody>
                     <tr class="item-row template d-none">
+                        <td class="serial-number"></td>
                         <td>
                             <select class="form-select category-select" disabled>
                                 <option value="">-- all categories --</option>
@@ -82,6 +85,15 @@
                                 }
                             </select>
                         </td>
+                        <td>
+                            <select name="Items[0].ProductUnitId" class="form-select unit-select" disabled>
+                                <option value="" data-product="" data-factor="1" data-price="">Default unit</option>
+                                @foreach (var unit in Model.ProductUnits)
+                                {
+                                    <option value="@unit.Id" data-product="@unit.ProductId" data-factor="@unit.ConversionFactor" data-price="@unit.SellingPrice">@unit.Name</option>
+                                }
+                            </select>
+                        </td>
                         <td><input name="Items[0].Quantity" class="form-control qty" value="1" disabled /></td>
                         <td><input name="Items[0].UnitPrice" class="form-control unitprice" disabled /></td>
                         <td><input name="Items[0].LineTotal" class="form-control linetotal" readonly disabled /></td>
@@ -92,6 +104,7 @@
                     {
                         var selectedProduct = Model.ProductsFull.FirstOrDefault(p => p.Id == Model.Items[i].ProductId);
                         <tr class="item-row">
+                            <td class="serial-number">@(i + 1)</td>
                             <td>
                                 <select class="form-select category-select">
                                     <option value="">-- all categories --</option>
@@ -128,6 +141,22 @@
                                         {
                                             var returned = Model.ReturnedQuantityByProduct.GetValueOrDefault(p.Id);
                                             <option value="@p.Id" data-category="@CategoryValue(p.ProductCategoryId)" data-price="@p.Price" data-stock="@stock" data-returned="@returned">@p.Name (Available: @stock.ToString("N2"))</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="Items[@i].ProductUnitId" class="form-select unit-select">
+                                    <option value="" data-product="@Model.Items[i].ProductId" data-factor="1" data-price="@(selectedProduct?.Price ?? 0)">@(Model.Items[i].UnitName ?? selectedProduct?.Unit ?? "Default unit")</option>
+                                    @foreach (var unit in Model.ProductUnits.Where(u => u.ProductId == Model.Items[i].ProductId))
+                                    {
+                                        if (unit.Id == Model.Items[i].ProductUnitId)
+                                        {
+                                            <option value="@unit.Id" data-product="@unit.ProductId" data-factor="@unit.ConversionFactor" data-price="@unit.SellingPrice" selected>@unit.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@unit.Id" data-product="@unit.ProductId" data-factor="@unit.ConversionFactor" data-price="@unit.SellingPrice">@unit.Name</option>
                                         }
                                     }
                                 </select>

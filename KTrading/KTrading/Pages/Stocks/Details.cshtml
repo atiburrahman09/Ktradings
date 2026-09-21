@@ -10,7 +10,7 @@
     </div>
     <div class="card-body">
         <h4>Product: @Model.ProductName</h4>
-        <p>Quantity: @Model.Stock.Quantity</p>
+        <p>Quantity: @Model.Stock.Quantity @(Model.BaseUnitName ?? "units")</p>
         <p>Updated: @Model.Stock.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</p>
     </div>
 
@@ -23,6 +23,7 @@
                         <th>Date</th>
                         <th>Type</th>
                         <th class="text-end">Quantity</th>
+                        <th>Entered as</th>
                         <th>Note</th>
                     </tr>
                 </thead>
@@ -33,6 +34,7 @@
                         <td>@m.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                         <td>@m.MovementType</td>
                         <td class="text-end">@m.Quantity</td>
+                        <td>@(m.EnteredQuantity > 0 ? $"{m.EnteredQuantity:N2} {m.UnitName}" : "-")</td>
                         <td>@m.Note</td>
                     </tr>
                 }

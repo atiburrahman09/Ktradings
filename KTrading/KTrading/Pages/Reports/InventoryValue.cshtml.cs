@@ -57,9 +57,9 @@ namespace KTrading.Pages.Reports
             var rows = items.Select(i =>
             {
                 var qty = i.Stock.Quantity;
-                var cost = i.Product.Price > 0
-                    ? i.Product.Price
-                    : i.Product.Cost;
+                var cost = i.Product.Cost > 0
+                    ? i.Product.Cost
+                    : i.Product.Price;
                 var val = qty * cost;
                 return new Row
                 {

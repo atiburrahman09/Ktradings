@@ -53,7 +53,7 @@ namespace KTrading.Pages.Stocks
                 .Take(pageSize)
                 .ToListAsync();
             var products = await _db.Products.ToListAsync();
-            ProductMap = products.ToDictionary(p => p.Id, p => p.Name);
+            ProductMap = products.ToDictionary(p => p.Id, p => string.IsNullOrWhiteSpace(p.Unit) ? p.Name : $"{p.Name} ({p.Unit})");
         }
     }
 }

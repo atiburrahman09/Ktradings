@@ -3,6 +3,8 @@
     function updateIndexes(container, selector){
         var rows = container.querySelectorAll(selector);
         rows.forEach(function(row, idx){
+            var serial = row.querySelector('.serial-number');
+            if(serial) serial.textContent = idx + 1;
             var inputs = row.querySelectorAll('input, select, textarea');
             inputs.forEach(function(inp){
                 if(inp.name){
@@ -65,6 +67,9 @@
                 returned: option.dataset.returned || ''
             };
         });
+        var unitOptions = Array.prototype.map.call(tbody.querySelector('.template .unit-select').options, function(option){
+            return { value: option.value, text: option.text, product: option.dataset.product || '', factor: option.dataset.factor || '1', price: option.dataset.price || '' };
+        });
         console.log('[SalesOrder] Product options cache:', productOptions);
         tbody.addEventListener('input', function(e){
             if(e.target.matches('.qty') || e.target.matches('.unitprice')){
@@ -98,6 +103,10 @@
                     selectedText: e.target.options[e.target.selectedIndex] && e.target.options[e.target.selectedIndex].text,
                     selectedCategory: e.target.options[e.target.selectedIndex] && e.target.options[e.target.selectedIndex].dataset.category
                 });
+                populateUnits(row, true);
+                updateProductPrice(row);
+            }
+            if(e.target.matches('.unit-select')){
                 updateProductPrice(row);
             }
         });
@@ -117,6 +126,7 @@
             tbody.appendChild(clone);
             updateIndexes(tbody, 'tr:not(.template)');
             filterProductsForRow(clone, false);
+            populateUnits(clone, true);
             bindRemoveButtonsForSalesTable(tbody);
         });
 
@@ -136,10 +146,13 @@
         function updateProductPrice(row){
             var productSelect = row.querySelector('.product-select');
             var opt = productSelect && productSelect.options[productSelect.selectedIndex];
-            if(opt && opt.dataset.price){
-                row.querySelector('.unitprice').value = parseFloat(opt.dataset.price).toFixed(2);
+            var unitSelect = row.querySelector('.unit-select');
+            var unitOption = unitSelect && unitSelect.options[unitSelect.selectedIndex];
+            var selectedPrice = unitOption && unitOption.dataset.price ? unitOption.dataset.price : opt && opt.dataset.price;
+            if(selectedPrice){
+                row.querySelector('.unitprice').value = parseFloat(selectedPrice).toFixed(2);
                 var qty = parseFloat(row.querySelector('.qty').value)||0;
-                row.querySelector('.linetotal').value = (qty * parseFloat(opt.dataset.price||0)).toFixed(2);
+                row.querySelector('.linetotal').value = (qty * parseFloat(selectedPrice||0)).toFixed(2);
                 validateRowStock(row);
                 if(window.computeAll) window.computeAll();
             } else {
@@ -147,6 +160,37 @@
                 row.querySelector('.linetotal').value = '';
                 if(window.computeAll) window.computeAll();
             }
+        }
+
+        function populateUnits(row, reset){
+            var productSelect = row.querySelector('.product-select');
+            var unitSelect = row.querySelector('.unit-select');
+            if(!productSelect || !unitSelect) return;
+            var productId = productSelect.value;
+            var productOption = productSelect.options[productSelect.selectedIndex];
+            var currentValue = reset ? '' : unitSelect.value;
+            unitSelect.innerHTML = '';
+            var matching = unitOptions.filter(function(unit){ return unit.value && unit.product === productId; });
+            if(!matching.length){
+                var legacy = document.createElement('option');
+                legacy.value = '';
+                legacy.text = 'Default unit';
+                legacy.dataset.product = productId;
+                legacy.dataset.factor = '1';
+                legacy.dataset.price = productOption && productOption.dataset.price || '';
+                unitSelect.appendChild(legacy);
+                return;
+            }
+            matching.forEach(function(source){
+                var option = document.createElement('option');
+                option.value = source.value;
+                option.text = source.text;
+                option.dataset.product = source.product;
+                option.dataset.factor = source.factor;
+                option.dataset.price = source.price;
+                unitSelect.appendChild(option);
+            });
+            if(currentValue && Array.prototype.some.call(unitSelect.options, function(option){ return option.value === currentValue; })) unitSelect.value = currentValue;
         }
 
         function filterProductsForRow(row, resetProduct){
@@ -212,6 +256,7 @@
             tbody.querySelectorAll('tr:not(.template)').forEach(function(row){
                 syncCategoryFromSelectedProduct(row);
                 filterProductsForRow(row, false);
+                populateUnits(row, false);
             });
         }
 
@@ -245,8 +290,11 @@
         var option = select.options[select.selectedIndex];
         var stock = parseFloat(option && option.dataset.stock) || 0;
         var qty = parseFloat(qtyInput.value) || 0;
+        var unitSelect = row.querySelector('.unit-select');
+        var unitOption = unitSelect && unitSelect.options[unitSelect.selectedIndex];
+        var factor = parseFloat(unitOption && unitOption.dataset.factor) || 1;
 
-        qtyInput.setCustomValidity(qty > stock ? 'Only ' + stock.toFixed(2) + ' is available in stock.' : '');
+        qtyInput.setCustomValidity(qty * factor > stock ? 'Only ' + (stock / factor).toFixed(2) + ' is available in the selected unit.' : '');
     }
 
     window.computeAll = function(){

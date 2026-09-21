@@ -29,6 +29,7 @@ namespace KTrading.Pages.SalesOrders
         public IEnumerable<SelectListItem> SalesOfficerList { get; set; } = Array.Empty<SelectListItem>();
         public IEnumerable<SelectListItem> ProductCategoryList { get; set; } = Array.Empty<SelectListItem>();
         public List<Product> ProductsFull { get; set; } = new();
+        public List<ProductUnit> ProductUnits { get; set; } = new();
         public Dictionary<Guid, decimal> ProductStockMap { get; set; } = new();
         public Dictionary<Guid, decimal> ReturnedQuantityByProduct { get; set; } = new();
         public Dictionary<Guid, decimal> SalesAdjustmentQuantityByProduct { get; set; } = new();
@@ -56,6 +57,7 @@ namespace KTrading.Pages.SalesOrders
             if (existingOrder is null) return NotFound();
 
             SalesOrder.Id = id;
+            await ResolveUnitsAsync();
             await ConvertPostedNetItemsToGrossAsync(id);
             ValidateItems();
             if (ModelState.IsValid)
@@ -93,7 +95,7 @@ namespace KTrading.Pages.SalesOrders
             foreach (var oldItem in existingItems)
             {
                 var stock = await GetOrCreateStockAsync(oldItem.ProductId);
-                stock.Quantity += oldItem.Quantity;
+                stock.Quantity += oldItem.BaseQuantity;
                 stock.UpdatedAt = DateTimeOffset.UtcNow;
             }
 
@@ -113,7 +115,11 @@ namespace KTrading.Pages.SalesOrders
                 {
                     Id = Guid.NewGuid(),
                     ProductId = item.ProductId,
-                    Quantity = -item.Quantity,
+                    Quantity = -item.BaseQuantity,
+                    EnteredQuantity = item.Quantity,
+                    ProductUnitId = item.ProductUnitId,
+                    UnitName = item.UnitName,
+                    ConversionFactor = item.ConversionFactor,
                     MovementType = "OUT",
                     ReferenceId = id,
                     Note = "Sale edit",
@@ -121,7 +127,7 @@ namespace KTrading.Pages.SalesOrders
                 });
 
                 var stock = await GetOrCreateStockAsync(item.ProductId);
-                stock.Quantity -= item.Quantity;
+                stock.Quantity -= item.BaseQuantity;
                 stock.UpdatedAt = DateTimeOffset.UtcNow;
             }
 
@@ -202,27 +208,17 @@ namespace KTrading.Pages.SalesOrders
 
         private void ApplyReturnAdjustedDisplayItems()
         {
-            Items = Items
-                .GroupBy(i => i.ProductId)
-                .Select(g =>
-                {
-                    var soldQuantity = g.Sum(i => i.Quantity);
-                    var soldAmount = g.Sum(i => i.LineTotal);
-                    var unitPrice = soldQuantity == 0 ? 0 : soldAmount / soldQuantity;
-                    var salesAdjustmentQuantity = SalesAdjustmentQuantityByProduct.GetValueOrDefault(g.Key);
-
-                    return new SalesOrderItem
-                    {
-                        Id = g.First().Id,
-                        SalesOrderId = g.First().SalesOrderId,
-                        ProductId = g.Key,
-                        Quantity = Math.Max(soldQuantity - salesAdjustmentQuantity, 0m),
-                        UnitPrice = unitPrice,
-                        LineTotal = Math.Max(soldAmount - (salesAdjustmentQuantity * unitPrice), 0m)
-                    };
-                })
-                .OrderBy(i => i.ProductId)
-                .ToList();
+            var remaining = new Dictionary<Guid, decimal>(SalesAdjustmentQuantityByProduct);
+            foreach (var item in Items)
+            {
+                var factor = item.ConversionFactor <= 0 ? 1m : item.ConversionFactor;
+                var availableBase = item.BaseQuantity > 0 ? item.BaseQuantity : item.Quantity * factor;
+                var adjustment = Math.Min(availableBase, remaining.GetValueOrDefault(item.ProductId));
+                remaining[item.ProductId] = Math.Max(remaining.GetValueOrDefault(item.ProductId) - adjustment, 0m);
+                item.Quantity = Math.Max(item.Quantity - (adjustment / factor), 0m);
+                item.BaseQuantity = item.Quantity * factor;
+                item.LineTotal = item.Quantity * item.UnitPrice;
+            }
         }
 
         private async Task ConvertPostedNetItemsToGrossAsync(Guid salesOrderId)
@@ -232,8 +228,10 @@ namespace KTrading.Pages.SalesOrders
             foreach (var item in Items)
             {
                 var returnedQuantity = returnedByProduct.GetValueOrDefault(item.ProductId);
-                item.Quantity += returnedQuantity;
+                item.Quantity += returnedQuantity / (item.ConversionFactor <= 0 ? 1m : item.ConversionFactor);
+                item.BaseQuantity = item.Quantity * (item.ConversionFactor <= 0 ? 1m : item.ConversionFactor);
                 item.LineTotal = item.Quantity * item.UnitPrice;
+                returnedByProduct[item.ProductId] = 0m;
             }
         }
 
@@ -241,7 +239,7 @@ namespace KTrading.Pages.SalesOrders
         {
             var requestedByProduct = Items
                 .GroupBy(i => i.ProductId)
-                .ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+                .ToDictionary(g => g.Key, g => g.Sum(i => i.BaseQuantity));
             var returnedByProduct = await GetReturnedQuantitiesAsync(salesOrderId);
 
             foreach (var returned in returnedByProduct)
@@ -265,7 +263,7 @@ namespace KTrading.Pages.SalesOrders
             var existingByProduct = await _db.SalesOrderItems
                 .Where(i => i.SalesOrderId == salesOrderId)
                 .GroupBy(i => i.ProductId)
-                .Select(g => new { ProductId = g.Key, Quantity = g.Sum(i => i.Quantity) })
+                .Select(g => new { ProductId = g.Key, Quantity = g.Sum(i => i.BaseQuantity) })
                 .ToDictionaryAsync(x => x.ProductId, x => x.Quantity);
             var productIds = requestedByProduct.Keys.ToList();
             var productNames = await _db.Products
@@ -411,6 +409,9 @@ namespace KTrading.Pages.SalesOrders
             ProductsFull = await _db.Products
                 .OrderBy(p => p.Name)
                 .ToListAsync();
+            var selectedUnitIds = Items.Where(i => i.ProductUnitId.HasValue).Select(i => i.ProductUnitId!.Value).ToList();
+            ProductUnits = await _db.ProductUnits.Where(u => u.IsActive || selectedUnitIds.Contains(u.Id))
+                .OrderBy(u => u.IsBaseUnit ? 0 : 1).ThenBy(u => u.Name).ToListAsync();
             ProductStockMap = await _db.Stocks.ToDictionaryAsync(s => s.ProductId, s => s.Quantity);
             ReturnedQuantityByProduct = salesOrderId.HasValue
                 ? await GetReturnedQuantitiesAsync(salesOrderId.Value)
@@ -424,13 +425,41 @@ namespace KTrading.Pages.SalesOrders
                 var currentOrderQuantities = await _db.SalesOrderItems
                     .Where(i => i.SalesOrderId == salesOrderId.Value)
                     .GroupBy(i => i.ProductId)
-                    .Select(g => new { ProductId = g.Key, Quantity = g.Sum(i => i.Quantity) })
+                    .Select(g => new { ProductId = g.Key, BaseQuantity = g.Sum(i => i.BaseQuantity) })
                     .ToListAsync();
 
                 foreach (var item in currentOrderQuantities)
                 {
-                    ProductStockMap[item.ProductId] = ProductStockMap.GetValueOrDefault(item.ProductId) + item.Quantity;
+                    ProductStockMap[item.ProductId] = ProductStockMap.GetValueOrDefault(item.ProductId) + item.BaseQuantity;
                 }
+            }
+        }
+
+        private async Task ResolveUnitsAsync()
+        {
+            var unitIds = Items.Where(i => i.ProductUnitId.HasValue).Select(i => i.ProductUnitId!.Value).Distinct().ToList();
+            var units = await _db.ProductUnits.Where(u => unitIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id);
+            var productIds = Items.Select(i => i.ProductId).Distinct().ToList();
+            var products = await _db.Products.Where(p => productIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id);
+            for (var index = 0; index < Items.Count; index++)
+            {
+                var item = Items[index];
+                if (item.ProductUnitId.HasValue)
+                {
+                    if (!units.TryGetValue(item.ProductUnitId.Value, out var unit) || unit.ProductId != item.ProductId)
+                    {
+                        ModelState.AddModelError($"Items[{index}].ProductUnitId", "Select a valid unit for this product.");
+                        continue;
+                    }
+                    item.UnitName = unit.Name;
+                    item.ConversionFactor = unit.ConversionFactor;
+                }
+                else
+                {
+                    item.UnitName = products.GetValueOrDefault(item.ProductId)?.Unit;
+                    item.ConversionFactor = 1m;
+                }
+                item.BaseQuantity = item.Quantity * item.ConversionFactor;
             }
         }
 
@@ -448,7 +477,7 @@ namespace KTrading.Pages.SalesOrders
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+                    g => g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity));
             var returnItems = await _db.ProductReturnItems
                 .Join(_db.ProductReturns.Where(r => r.SalesOrderId == salesOrderId),
                     item => item.ProductReturnId,
@@ -467,7 +496,7 @@ namespace KTrading.Pages.SalesOrders
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Sum(i => i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.Quantity));
+                    g => g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity) == 0 ? 0 : g.Sum(i => i.LineTotal) / g.Sum(i => i.BaseQuantity > 0 ? i.BaseQuantity : i.Quantity));
             var returnItems = await _db.ProductReturnItems
                 .Join(_db.ProductReturns.Where(r => r.SalesOrderId == order.Id),
                     item => item.ProductReturnId,
@@ -532,7 +561,7 @@ namespace KTrading.Pages.SalesOrders
 
         private static decimal GetSalesAdjustmentQuantity(ProductReturnItem item)
         {
-            return Math.Max(item.Quantity, 0m);
+            return Math.Max(item.Quantity, 0m) + Math.Max(item.DamagedQuantity, 0m);
         }
 
         private static decimal GetDamagedReturnQuantity(ProductReturnItem item)

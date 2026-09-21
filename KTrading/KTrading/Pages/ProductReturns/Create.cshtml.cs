@@ -171,7 +171,7 @@ namespace KTrading.Pages.ProductReturns
                 .GroupBy(i => i.ProductId)
                 .Select(g =>
                 {
-                    var sold = g.Sum(i => i.Quantity);
+                    var sold = g.Sum(i => i.BaseQuantity);
                     var returned = returnedByProduct.GetValueOrDefault(g.Key);
                     return new ReturnLineInput
                     {
@@ -191,7 +191,7 @@ namespace KTrading.Pages.ProductReturns
             var soldByProduct = await _db.SalesOrderItems
                 .Where(i => i.SalesOrderId == salesOrderId)
                 .GroupBy(i => i.ProductId)
-                .Select(g => new { ProductId = g.Key, Quantity = g.Sum(i => i.Quantity) })
+                .Select(g => new { ProductId = g.Key, Quantity = g.Sum(i => i.BaseQuantity) })
                 .ToDictionaryAsync(x => x.ProductId, x => x.Quantity);
 
             var returnedByProduct = await GetReturnedQuantitiesAsync(salesOrderId);

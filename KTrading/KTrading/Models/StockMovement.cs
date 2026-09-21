@@ -9,5 +9,9 @@ namespace KTrading.Models
         public Guid? ReferenceId { get; set; }
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
         public string? Note { get; set; }
+        public Guid? ProductUnitId { get; set; }
+        public string? UnitName { get; set; }
+        public decimal EnteredQuantity { get; set; }
+        public decimal ConversionFactor { get; set; } = 1m;
     }
 }

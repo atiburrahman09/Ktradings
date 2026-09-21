@@ -13,10 +13,21 @@
 
         <div class="mb-3">
             <label asp-for="Input.ProductId" class="form-label">Product</label>
-            <select asp-for="Input.ProductId" asp-items="Model.ProductList" class="form-select">
+            <select asp-for="Input.ProductId" asp-items="Model.ProductList" class="form-select" id="stockProduct">
                 <option value="">Select product</option>
             </select>
             <span asp-validation-for="Input.ProductId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.ProductUnitId" class="form-label">Unit</label>
+            <select asp-for="Input.ProductUnitId" class="form-select" id="stockUnit">
+                <option value="">Default/base unit</option>
+                @foreach (var unit in Model.ProductUnits)
+                {
+                    <option value="@unit.Id" data-product="@unit.ProductId">@unit.Name (× @unit.ConversionFactor)</option>
+                }
+            </select>
         </div>
 
         <div class="mb-3">
@@ -39,4 +50,20 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const product = document.getElementById('stockProduct');
+            const unit = document.getElementById('stockUnit');
+            const options = Array.from(unit.options).map(o => ({ value: o.value, text: o.text, product: o.dataset.product || '' }));
+            function refresh() {
+                const current = unit.value;
+                unit.innerHTML = '';
+                options.filter(o => !o.value || o.product === product.value).forEach(o => {
+                    const option = document.createElement('option'); option.value = o.value; option.text = o.text; option.dataset.product = o.product; unit.appendChild(option);
+                });
+                if (Array.from(unit.options).some(o => o.value === current)) unit.value = current;
+            }
+            product.addEventListener('change', refresh); refresh();
+        })();
+    </script>
 }

@@ -14,6 +14,7 @@ namespace KTrading.Data
 
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<ProductCategory> ProductCategories { get; set; } = null!;
+        public DbSet<ProductUnit> ProductUnits { get; set; } = null!;
         public DbSet<Customer> Customers { get; set; } = null!;
         public DbSet<SalesOfficer> SalesOfficers { get; set; } = null!;
         public DbSet<SalesOrder> SalesOrders { get; set; } = null!;
@@ -37,6 +38,15 @@ namespace KTrading.Data
             builder.Entity<Product>().Property(p => p.Cost).HasColumnType("decimal(18,4)");
             builder.Entity<Product>().Property(p => p.Price).HasColumnType("decimal(18,4)");
             builder.Entity<Product>().Property(p => p.VATPercent).HasColumnType("decimal(5,2)");
+
+            builder.Entity<ProductUnit>().ToTable("ProductUnits");
+            builder.Entity<ProductUnit>().HasKey(u => u.Id);
+            builder.Entity<ProductUnit>().HasIndex(u => new { u.ProductId, u.Name }).IsUnique().HasFilter("[IsActive] = 1");
+            builder.Entity<ProductUnit>().HasOne(u => u.Product).WithMany(p => p.ProductUnits)
+                .HasForeignKey(u => u.ProductId).OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<ProductUnit>().Property(u => u.ConversionFactor).HasColumnType("decimal(18,4)");
+            builder.Entity<ProductUnit>().Property(u => u.SellingPrice).HasColumnType("decimal(18,4)");
+            builder.Entity<ProductUnit>().Property(u => u.PurchaseCost).HasColumnType("decimal(18,4)");
 
             // Product categories
             builder.Entity<ProductCategory>().ToTable("ProductCategories");
@@ -96,12 +106,18 @@ namespace KTrading.Data
             builder.Entity<SalesOrderItem>().Property(i => i.UnitPrice).HasColumnType("decimal(18,4)");
             builder.Entity<SalesOrderItem>().Property(i => i.Quantity).HasColumnType("decimal(18,2)");
             builder.Entity<SalesOrderItem>().Property(i => i.LineTotal).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrderItem>().Property(i => i.ConversionFactor).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrderItem>().Property(i => i.BaseQuantity).HasColumnType("decimal(18,4)");
+            builder.Entity<SalesOrderItem>().Property(i => i.UnitName).HasMaxLength(50);
 
             builder.Entity<Payment>().Property(p => p.Amount).HasColumnType("decimal(18,4)");
             builder.Entity<ProductReturnItem>().Property(ri => ri.Quantity).HasColumnType("decimal(18,2)");
             builder.Entity<ProductReturnItem>().Property(ri => ri.DamagedQuantity).HasColumnType("decimal(18,2)");
             builder.Entity<Stock>().Property(s => s.Quantity).HasColumnType("decimal(18,4)");
             builder.Entity<StockMovement>().Property(sm => sm.Quantity).HasColumnType("decimal(18,4)");
+            builder.Entity<StockMovement>().Property(sm => sm.EnteredQuantity).HasColumnType("decimal(18,4)");
+            builder.Entity<StockMovement>().Property(sm => sm.ConversionFactor).HasColumnType("decimal(18,4)");
+            builder.Entity<StockMovement>().Property(sm => sm.UnitName).HasMaxLength(50);
         }
     }
 }
